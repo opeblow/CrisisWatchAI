@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
@@ -43,7 +43,7 @@ def _serialize(alert: CrisisAlert) -> dict[str, Any]:
 
 @router.get("", summary="Get active alerts sorted by urgency")
 async def get_alerts(
-    severity_min: Optional[int] = Query(None, ge=1, le=5),
+    severity_min: int | None = Query(None, ge=1, le=5),
     unread_only: bool = Query(False),
     limit: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
