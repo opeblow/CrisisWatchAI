@@ -91,12 +91,11 @@ async def main() -> None:
             return
 
         now = datetime.now(timezone.utc)
-        day = timedelta(days=1)
         events = []
         for base in SAMPLE_EVENTS:
             event_type, country, region, lat, lon, sev, desc = base
             region = REGION_ALIASES.get(region, region)
-            for i in range(random.randint(8, 14)):
+            for _ in range(random.randint(8, 14)):
                 offset_days = random.randint(5, 330)
                 ts = now - timedelta(days=offset_days, hours=random.randint(0, 23))
                 level = max(1, min(5, sev + random.choice([-1, 0, 0, 1])))
