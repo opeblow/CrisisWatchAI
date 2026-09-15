@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 #: Canonical crisis categories the pipeline normalizes every event into.
 EVENT_TYPES = (
@@ -58,13 +58,13 @@ class CrisisEvent:
     country: str
     region: str
     timestamp: datetime
-    casualties: Optional[int] = None
-    displaced: Optional[int] = None
-    affected: Optional[int] = None
-    raw_data: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    casualties: int | None = None
+    displaced: int | None = None
+    affected: int | None = None
+    raw_data: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-friendly dictionary representation."""
         return {
             "source": self.source,
