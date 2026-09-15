@@ -1,0 +1,14 @@
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+  "E501",  # line length handled by formatter/refactor, not lint
+  "B008",  # FastAPI idiom: Depends() in default argument values
+]
+
+[lint.per-file-ignores]
+# Test/seed scripts may intentionally be defensive.
+"*_test.py" = ["F401", "E402"]
+"seed_demo.py" = ["F401", "E402"]
+"smoke_test.py" = ["F401", "E402"]
