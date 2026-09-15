@@ -44,6 +44,9 @@ jobs:
       - name: Seed demo data
         run: |
           DATABASE_URL=sqlite+aiosqlite:///./crisiswatch.db python seed_demo.py
+      - name: Run core integrity unit test
+        run: |
+          python test_core_integrity.py
       - name: Run smoke test
         run: |
           DATABASE_URL=sqlite+aiosqlite:///./crisiswatch.db python smoke_test.py
