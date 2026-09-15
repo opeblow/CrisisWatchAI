@@ -124,7 +124,7 @@ class USGSSource(BaseSource):
             country=country,
             region=region,
             timestamp=timestamp,
-            casualties=safe_int(props.get("felt")),  # felt reports, not verified casualties
+            casualties=None,  # felt reports stored in metadata["felt"], not confirmed casualties
             affected=None,
             raw_data=dict(feature),
             metadata=metadata,
