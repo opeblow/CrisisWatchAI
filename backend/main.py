@@ -181,7 +181,8 @@ async def _run_initial_ingestion() -> None:
     """Run data ingestion pipeline and persist events into database."""
     try:
         from data.ingestion import DataIngestionPipeline
-        from db.models import CrisisEvent as DBCrisisEvent, CrisisEventType
+        from db.models import CrisisEvent as DBCrisisEvent
+        from db.models import CrisisEventType
         from services.alert_service import AlertService
 
         pipeline = DataIngestionPipeline()
