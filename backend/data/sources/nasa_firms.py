@@ -166,7 +166,7 @@ class NASAFIRMSSource(BaseSource):
             country="",
             region="",
             timestamp=timestamp,
-            affected=1 if confidence is not None and confidence >= 80 else None,
+            affected=None,
             raw_data=dict(row),
             metadata=metadata,
         )
