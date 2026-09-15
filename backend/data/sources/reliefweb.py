@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
 from ..http import fetch_json
-from ..schema import CrisisEvent, UNKNOWN_COORD
+from ..schema import UNKNOWN_COORD, CrisisEvent
 from ..utils import parse_datetime, strip_html
 from .base import BaseSource
 
@@ -67,12 +67,12 @@ class ReliefWebSource(BaseSource):
     name = "reliefweb"
     default_requests_per_second = 0.5
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.api_url = self.config.get("api_url", DEFAULT_API_URL)
         self.limit = int(self.config.get("limit", 50))
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         params = {
             "appname": "crisiswatch",
             "limit": str(self.limit),
@@ -83,14 +83,14 @@ class ReliefWebSource(BaseSource):
             retries=self.config.get("retries"),
         )
         data = (payload or {}).get("data", []) or []
-        events: List[CrisisEvent] = []
+        events: list[CrisisEvent] = []
         for item in data:
             event = self._parse_report(item)
             if event is not None:
                 events.append(event)
         return events
 
-    def _parse_report(self, item: Dict[str, Any]) -> Optional[CrisisEvent]:
+    def _parse_report(self, item: dict[str, Any]) -> CrisisEvent | None:
         fields = item.get("fields") or {}
         title = strip_html(fields.get("title") or item.get("href") or "ReliefWeb report")
         if not title:
@@ -153,7 +153,7 @@ class ReliefWebSource(BaseSource):
         )
 
     @staticmethod
-    def _detect_event_type(text: str) -> Optional[str]:
+    def _detect_event_type(text: str) -> str | None:
         """Classify the event type from combined title+body text."""
         best_type, best_score = None, 0
         for event_type, keywords in TYPE_KEYWORDS.items():
@@ -163,7 +163,7 @@ class ReliefWebSource(BaseSource):
         return best_type
 
     @staticmethod
-    def _disaster_severity(disaster_names: List[str], text: str, event_type: Optional[str]) -> int:
+    def _disaster_severity(disaster_names: list[str], text: str, event_type: str | None) -> int:
         severity = DEFAULT_DISASTER_SEVERITY
         for name in disaster_names:
             severity = max(severity, DISASTER_SEVERITY.get(name, DEFAULT_DISASTER_SEVERITY))
