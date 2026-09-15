@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -48,7 +48,7 @@ MAX_SEVERITY: float = 5.0
 __all__ = ["CrisisClustering", "HOTSPOTS_PATH"]
 
 
-def _resolve_column(df: pd.DataFrame, candidates: List[str], purpose: str) -> str:
+def _resolve_column(df: pd.DataFrame, candidates: list[str], purpose: str) -> str:
     for col in candidates:
         if col in df.columns:
             return col
@@ -72,7 +72,7 @@ class CrisisClustering:
         self,
         min_cluster_size: int = 5,
         min_samples: int = 3,
-        cluster_selection_epsilon: Optional[float] = None,
+        cluster_selection_epsilon: float | None = None,
         **hdbscan_kwargs: Any,
     ) -> None:
         if min_cluster_size < 2:
@@ -82,12 +82,12 @@ class CrisisClustering:
         self.min_samples = min_samples
         self.cluster_selection_epsilon = cluster_selection_epsilon
         self.hdbscan_kwargs = hdbscan_kwargs
-        self.labels_: Optional[np.ndarray] = None
-        self.hotspots_: Optional[List[Dict[str, Any]]] = None
-        self._fitted_df: Optional[pd.DataFrame] = None
-        self._lat_col: Optional[str] = None
-        self._lon_col: Optional[str] = None
-        self._sev_col: Optional[str] = None
+        self.labels_: np.ndarray | None = None
+        self.hotspots_: list[dict[str, Any]] | None = None
+        self._fitted_df: pd.DataFrame | None = None
+        self._lat_col: str | None = None
+        self._lon_col: str | None = None
+        self._sev_col: str | None = None
 
     # ------------------------------------------------------------------ fit
     def fit_predict(self, events_df: pd.DataFrame) -> np.ndarray:
@@ -147,7 +147,7 @@ class CrisisClustering:
         return labels
 
     # --------------------------------------------------------------- hotspots
-    def get_hotspots(self, default_severity: float = 1.0) -> List[Dict[str, Any]]:
+    def get_hotspots(self, default_severity: float = 1.0) -> list[dict[str, Any]]:
         """Compute hotspot summaries, sorted by descending ``risk_score``.
 
         Each hotspot is ``{"cluster_id", "center_lat", "center_lon", "event_count",
@@ -175,7 +175,7 @@ class CrisisClustering:
         else:
             sev = np.full(len(df), float(default_severity))
 
-        hotspot_rows: List[Dict[str, Any]] = []
+        hotspot_rows: list[dict[str, Any]] = []
         for g in clusters:
             idx = g.index.to_numpy()
             cid = int(g.name)
@@ -231,21 +231,23 @@ class CrisisClustering:
             zip(
                 np.round(fitted[self._lat_col].to_numpy(float), 5),
                 np.round(fitted[self._lon_col].to_numpy(float), 5),
+                strict=False,
             )
         )
-        lookup = dict(zip(fitted["_hkey"], fitted["_cluster"]))
+        lookup = dict(zip(fitted["_hkey"], fitted["_cluster"], strict=False))
 
         out["_hkey"] = list(
             zip(
                 np.round(out[lat_col].to_numpy(float), 5),
                 np.round(out[lon_col].to_numpy(float), 5),
+                strict=False,
             )
         )
         out["cluster"] = out["_hkey"].map(lookup).fillna(-1).astype(int)
         return out.drop(columns=["_hkey"])
 
     # ------------------------------------------------------------- visualize
-    def visualize_clusters(self, save_path: Optional[Union[str, Path]] = None):
+    def visualize_clusters(self, save_path: str | Path | None = None):
         """Render a matplotlib scatter of events coloured by cluster.
 
         Noise points are drawn in grey, hotspots are annotated with their risk
@@ -305,7 +307,7 @@ class CrisisClustering:
         return fig
 
     # -------------------------------------------------------- persistence
-    def save_hotspots(self, path: Optional[Union[str, Path]] = None) -> Path:
+    def save_hotspots(self, path: str | Path | None = None) -> Path:
         """Persist the hotspot summaries as a CSV."""
         if not self.hotspots_:
             self.get_hotspots()
