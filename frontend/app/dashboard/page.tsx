@@ -59,8 +59,8 @@ export default function DashboardPage() {
     <div className="space-y-6 p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Crisis Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-bold text-zinc-900">Crisis Dashboard</h1>
+          <p className="mt-1 text-sm text-zinc-500">
             Live global situation awareness across all active disasters, outbreaks and conflicts.
           </p>
         </div>

@@ -73,10 +73,10 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <FileText className="h-6 w-6 text-green-400" /> Impact Reports
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-zinc-900">
+          <FileText className="h-6 w-6 text-yellow-600" /> Impact Reports
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-zinc-500">
           Auto-generated situational reports combining real events, ML forecasts and risk
           summaries — ready for briefing decks.
         </p>
@@ -92,12 +92,12 @@ export default function ReportsPage() {
             <Select value={region} onChange={setRegion} options={regionOptions} label="Region" />
             <Select value={days} onChange={setDays} options={DAYS} label="Timeframe" />
             <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 rounded-xl border border-white/15 px-4 py-3 text-sm text-slate-300">
+              <label className="flex items-center gap-2 rounded-xl border border-zinc-300 px-4 py-3 text-sm text-zinc-700">
                 <input
                   type="checkbox"
                   checked={includePred}
                   onChange={(e) => setIncludePred(e.target.checked)}
-                  className="h-4 w-4 accent-blue-500"
+                  className="h-4 w-4 accent-yellow-400"
                 />
                 Include ML predictions
               </label>
@@ -112,7 +112,7 @@ export default function ReportsPage() {
             </div>
           </div>
           {genError && (
-            <p className="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            <p className="mt-3 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-xs text-yellow-800">
               {genError}
             </p>
           )}
@@ -124,11 +124,11 @@ export default function ReportsPage() {
           <CardHeader
             title={latest ? `Latest: ${latest.region}` : "Latest Report"}
             subtitle={latest ? `Generated ${timeAgo(latest.created_at)}` : "No reports generated yet"}
-            action={latest ? <Badge color="#22c55e">{latest.format}</Badge> : undefined}
+            action={latest ? <Badge color="#FACC15">{latest.format}</Badge> : undefined}
           />
           <CardContent>
             {latest ? (
-              <div className="max-h-[480px] overflow-y-auto rounded-xl bg-white/[0.03] p-5">
+              <div className="max-h-[480px] overflow-y-auto rounded-xl bg-zinc-50 p-5">
                 <div
                   className="markdown-report"
                   dangerouslySetInnerHTML={{ __html: renderFmt(latest) }}
@@ -161,7 +161,7 @@ export default function ReportsPage() {
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16" />)
             ) : (list?.reports ?? []).length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-500">No reports yet — generate one.</p>
+              <p className="py-10 text-center text-sm text-zinc-500">No reports yet — generate one.</p>
             ) : (
               (list?.reports ?? []).map((r, i) => (
                 <motion.div
@@ -170,20 +170,20 @@ export default function ReportsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
                   className={`rounded-xl border p-3 ${
-                    i === 0 ? "border-blue-400/30 bg-blue-500/5" : "border-white/10 bg-white/[0.03]"
+                    i === 0 ? "border-gold/30 bg-gold/5" : "border-zinc-200 bg-zinc-50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-white">{r.region}</span>
-                    <Badge color="#22c55e">{r.format}</Badge>
+                    <span className="text-sm font-semibold text-zinc-900">{r.region}</span>
+                    <Badge color="#FACC15">{r.format}</Badge>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+                  <div className="mt-1 flex items-center justify-between text-xs text-zinc-500">
                     <span>
                       {r.date_from?.slice(0, 10)} → {r.date_to?.slice(0, 10)}
                     </span>
                     <span>{timeAgo(r.created_at)}</span>
                   </div>
-                  <div className="mt-2 line-clamp-2 text-xs text-slate-400">
+                  <div className="mt-2 line-clamp-2 text-xs text-zinc-500">
                     {r.content.replace(/[#*`>\-]/g, "").slice(0, 140)}
                   </div>
                 </motion.div>

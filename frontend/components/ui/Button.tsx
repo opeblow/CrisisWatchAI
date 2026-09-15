@@ -19,11 +19,11 @@ export function Button({
         size === "md" && "px-4 py-2 text-sm",
         size === "lg" && "px-6 py-3 text-base",
         variant === "primary" &&
-          "bg-blue-500 text-white hover:bg-blue-400 shadow-lg shadow-blue-500/25",
-        variant === "ghost" && "bg-transparent text-slate-300 hover:bg-white/10",
+          "bg-gold text-black hover:bg-lemon shadow-sm shadow-yellow-500/30",
+        variant === "ghost" && "bg-transparent text-zinc-600 hover:bg-zinc-100",
         variant === "outline" &&
-          "border border-white/15 text-slate-200 hover:bg-white/10",
-        variant === "danger" && "bg-red-500/90 text-white hover:bg-red-400",
+          "border border-zinc-300 text-zinc-700 hover:border-yellow-500 hover:text-yellow-700",
+        variant === "danger" && "bg-gold text-black hover:bg-lemon",
         className
       )}
       {...props}

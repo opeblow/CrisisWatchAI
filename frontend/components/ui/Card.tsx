@@ -9,7 +9,7 @@ export default function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-glow",
+        "rounded-2xl border border-zinc-200 bg-white",
         className
       )}
       {...props}
@@ -33,8 +33,8 @@ export function CardHeader({
   return (
     <div className={cn("flex items-start justify-between gap-3 p-5 pb-3", className)}>
       <div>
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
-        {subtitle && <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p>}
+        <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
+        {subtitle && <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>}
       </div>
       {action}
     </div>

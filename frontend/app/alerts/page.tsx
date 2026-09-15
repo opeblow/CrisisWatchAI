@@ -51,13 +51,13 @@ export default function AlertsPage() {
     <div className="space-y-6 p-6 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-            <Bell className="h-6 w-6 text-red-400" /> Crisis Alerts
-            {data && data.unread_count > 0 && (
-              <Badge color="#ef4444">{data.unread_count} unread</Badge>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-zinc-900">
+            <Bell className="h-6 w-6 text-yellow-600" /> Crisis Alerts
+{data && data.unread_count > 0 && (
+              <Badge color="#FACC15">{data.unread_count} unread</Badge>
             )}
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-zinc-500">
             Every alert is auto-generated the moment an event crosses the severity threshold —
             ranked by urgency.
           </p>
@@ -69,12 +69,12 @@ export default function AlertsPage() {
       </div>
 
       <Card>
-        <CardHeader title="Alert Feed" subtitle="Priority-sorted · severity 4+ red-flagged" />
+        <CardHeader title="Alert Feed" subtitle="Priority-sorted · severity 4+ flagged" />
         <CardContent className="space-y-2">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20" />)
           ) : alerts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-14 text-slate-500">
+            <div className="flex flex-col items-center justify-center gap-3 py-14 text-zinc-500">
               <BellOff className="h-10 w-10" />
               <p className="text-sm">No alerts match this filter.</p>
               <Button
@@ -97,33 +97,33 @@ export default function AlertsPage() {
                 transition={{ delay: i * 0.03 }}
                 className={`rounded-xl border p-4 transition-colors ${
                   !alert.is_read
-                    ? "border-red-400/30 bg-red-500/[0.06]"
-                    : "border-white/10 bg-white/[0.03]"
+                    ? "border-gold/30 bg-gold/[0.06]"
+                    : "border-zinc-200 bg-zinc-50"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {!alert.is_read && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-400">
+                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-yellow-600">
                           <span className="relative flex h-1.5 w-1.5">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-400" />
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-500 opacity-75" />
+                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-yellow-500" />
                           </span>
                           New
                         </span>
                       )}
-                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                         {alert.event?.event_type}
                       </span>
                       <Badge color={alert.severity_color}>{alert.severity_label}</Badge>
-                      <span className="ml-auto text-xs text-slate-500">
+                      <span className="ml-auto text-xs text-zinc-500">
                         {timeAgo(alert.created_at)}
                       </span>
                     </div>
-                    <p className="mt-1.5 text-sm font-medium text-white">{alert.message}</p>
+                    <p className="mt-1.5 text-sm font-medium text-zinc-900">{alert.message}</p>
                     {alert.event && (
-                      <div className="mt-1.5 flex items-center gap-3 text-xs text-slate-500">
+                      <div className="mt-1.5 flex items-center gap-3 text-xs text-zinc-500">
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
                           {alert.event.country ?? "—"}
@@ -160,7 +160,7 @@ export default function AlertsPage() {
         </CardContent>
       </Card>
 
-      <div className="flex items-center gap-2 pb-4 text-xs text-slate-600">
+      <div className="flex items-center gap-2 pb-4 text-xs text-zinc-500">
         <Filter className="h-3.5 w-3.5" />
         Alert pipeline: ingestion → severity scoring → threshold trigger → priority queue. Unread
         alerts auto-refresh every 30 seconds.

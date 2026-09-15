@@ -17,9 +17,9 @@ export function Badge({
         className
       )}
       style={{
-        color: color || "#e2e8f0",
-        backgroundColor: color ? `${color}22` : "rgba(255,255,255,0.08)",
-        border: `1px solid ${color ? `${color}55` : "rgba(255,255,255,0.12)"}`,
+        color: color || "#52525b",
+        backgroundColor: color ? `${color}22` : "rgba(250,204,21,0.2)",
+        border: `1px solid ${color ? `${color}55` : "rgba(250,204,21,0.4)"}`,
       }}
     >
       {children}

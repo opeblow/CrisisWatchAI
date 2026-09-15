@@ -82,10 +82,10 @@ export default function CrisisMap({
     ] as [[number, number], [number, number]];
   }, [events]);
 
-  if (!mounted) return <div className={`${height} w-full rounded-2xl bg-slate-900/40 animate-pulse`} />;
+  if (!mounted) return <div className={`${height} w-full rounded-2xl bg-zinc-200 animate-pulse`} />;
 
   return (
-    <div className={`${height} w-full overflow-hidden rounded-2xl border border-white/10`}>
+    <div className={`${height} w-full overflow-hidden rounded-2xl border border-zinc-200`}>
       <MapContainer
         center={[20, 0]}
         zoom={2}
@@ -94,7 +94,7 @@ export default function CrisisMap({
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom
       >
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
         <MarkerLayer events={events} />
       </MapContainer>
     </div>

@@ -97,10 +97,10 @@ export default function PredictionsPage() {
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <BrainCircuit className="h-6 w-6 text-purple-400" /> ML Predictions
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-zinc-900">
+          <BrainCircuit className="h-6 w-6 text-yellow-600" /> ML Predictions
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-zinc-500">
           Four models working together — XGBoost severity classification, DistilBERT NLP, Prophet forecasting and HDBSCAN clustering. Every result is explainable.
         </p>
       </div>
@@ -111,11 +111,11 @@ export default function PredictionsPage() {
             <CardHeader
               title="Severity Classifier"
               subtitle="XGBoost · 5-level risk rating"
-              action={<Badge color="#a855f7">AI</Badge>}
+              action={<Badge color="#FACC15">AI</Badge>}
             />
             <CardContent>
               <div className="flex flex-col items-center gap-4">
-                <p className="text-center text-xs leading-relaxed text-slate-400">
+                <p className="text-center text-xs leading-relaxed text-zinc-500">
                   Predict the severity of a new in-progress crisis event and see exactly
                   which features drove the decision (SHAP attribution).
                 </p>
@@ -123,28 +123,28 @@ export default function PredictionsPage() {
                   {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {running ? "Analyzing…" : "Predict severity"}
                 </Button>
-                {predError && <p className="text-xs text-red-400">{predError}</p>}
+                {predError && <p className="text-xs text-red-600">{predError}</p>}
                 {predResult && (
                   <div className="flex flex-col items-center gap-3">
                     <SeverityGauge severity={predResult.prediction.severity} size={130} />
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs text-zinc-500">
                       Confidence{" "}
-                      <strong className="text-white">
+                      <strong className="text-zinc-900">
                         {(predResult.prediction.confidence * 100).toFixed(1)}%
                       </strong>
                     </div>
                     {predResult.shap_values?.top_features?.length > 0 && (
-                      <div className="w-full rounded-xl bg-white/[0.04] p-3">
-                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <div className="w-full rounded-xl bg-zinc-50 p-3">
+                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
                           Why this prediction?
                         </div>
                         <div className="space-y-1.5">
                           {predResult.shap_values.top_features.map((f: ShapFeature) => (
                             <div key={f.feature_name} className="flex items-center justify-between text-xs">
-                              <span className="text-slate-400">{f.feature_name.replace("_", " ")}</span>
+                              <span className="text-zinc-500">{f.feature_name.replace("_", " ")}</span>
                               <span
                                 className="font-mono"
-                                style={{ color: f.direction === "increases" ? "#ef4444" : "#22c55e" }}
+                                style={{ color: "#a16207" }}
                               >
                                 {f.direction === "increases" ? "+" : ""}
                                 {f.shap_value}
@@ -155,7 +155,7 @@ export default function PredictionsPage() {
                       </div>
                     )}
                     {predResult.explanation && (
-                      <p className="text-xs italic leading-relaxed text-slate-400">
+                      <p className="text-xs italic leading-relaxed text-zinc-500">
                         {predResult.explanation}
                       </p>
                     )}
@@ -171,14 +171,14 @@ export default function PredictionsPage() {
             <CardHeader
               title="NLP Report Classifier"
               subtitle="DistilBERT · 8 crisis categories"
-              action={<Badge color="#22d3ee">TEXT</Badge>}
+              action={<Badge color="#EAB308">TEXT</Badge>}
             />
             <CardContent>
               <textarea
                 value={nlpText}
                 onChange={(e) => setNlpText(e.target.value)}
                 rows={5}
-                className="w-full resize-none rounded-xl border border-white/15 bg-slate-900/80 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-400"
+                className="w-full resize-none rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-gold"
                 placeholder="Paste an incoming situation report…"
               />
               <Button className="mt-3" onClick={runNLP}>
@@ -192,17 +192,17 @@ export default function PredictionsPage() {
                         key={l}
                         className="rounded-full px-3 py-1 text-xs font-semibold"
                         style={{
-                          backgroundColor: `${SEVERITY_COLORS[(i % 5) + 1] ?? "#3b82f6"}22`,
-                          color: SEVERITY_COLORS[(i % 5) + 1] ?? "#3b82f6",
-                          border: `1px solid ${SEVERITY_COLORS[(i % 5) + 1] ?? "#3b82f6"}55`,
+                          backgroundColor: `${SEVERITY_COLORS[(i % 5) + 1] ?? "#FACC15"}22`,
+                          color: SEVERITY_COLORS[(i % 5) + 1] ?? "#FACC15",
+                          border: `1px solid ${SEVERITY_COLORS[(i % 5) + 1] ?? "#FACC15"}55`,
                         }}
                       >
                         {l} {Math.round(nlpResult.scores[i] * 100)}%
                       </span>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-400">
-                    Primary: <strong className="text-white">{nlpResult.primary_label}</strong>
+                  <p className="text-xs text-zinc-500">
+                    Primary: <strong className="text-zinc-900">{nlpResult.primary_label}</strong>
                   </p>
                 </div>
               )}
@@ -215,10 +215,10 @@ export default function PredictionsPage() {
             <CardHeader
               title="Hotspot Clustering"
               subtitle="HDBSCAN · crisis zones by density"
-              action={<Badge color="#22c55e">{clusters?.count ?? "…"}</Badge>}
+              action={<Badge color="#FACC15">{clusters?.count ?? "…"}</Badge>}
             />
             <CardContent>
-              <p className="text-xs leading-relaxed text-slate-400">
+              <p className="text-xs leading-relaxed text-zinc-500">
                 Spatial hotspots currently detected across active crisis events, ranked by a
                 composite risk score of density + average severity.
               </p>
@@ -226,21 +226,21 @@ export default function PredictionsPage() {
                 {(clusters?.clusters ?? []).slice(0, 6).map((c) => (
                   <div
                     key={c.cluster_id}
-                    className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2 text-xs"
+                    className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-xs"
                   >
-                    <span className="text-slate-300">
-                      <span className="font-semibold text-white">#{c.cluster_id + 1}</span> ·{" "}
+                    <span className="text-zinc-600">
+                      <span className="font-semibold text-zinc-900">#{c.cluster_id + 1}</span> ·{" "}
                       {c.center_lat.toFixed(1)}, {c.center_lon.toFixed(1)}
                     </span>
                     <span className="flex items-center gap-2">
-                      <span className="text-slate-500">{c.event_count} events</span>
+                      <span className="text-zinc-500">{c.event_count} events</span>
                       <span className="font-mono" style={{ color: SEVERITY_COLORS[Math.ceil(c.avg_severity)] ?? "#94a3b8" }}>
                         {(c.risk_score * 100).toFixed(0)}%
                       </span>
                     </span>
                   </div>
                 ))}
-                {!clusters?.clusters?.length && <p className="text-xs text-slate-600">No hotspots yet.</p>}
+                {!clusters?.clusters?.length && <p className="text-xs text-zinc-500">No hotspots yet.</p>}
               </div>
             </CardContent>
           </Card>
@@ -266,9 +266,9 @@ export default function PredictionsPage() {
           ) : (
             <>
               <ForecastChart points={forecast?.points ?? []} />
-              <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+              <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
                 <TrendingUp className="h-4 w-4" />
-                {forecast?.model ?? "Forecast"} · region <strong className="text-slate-300">{selectedRegion}</strong>
+                {forecast?.model ?? "Forecast"} · region <strong className="text-zinc-900">{selectedRegion}</strong>
                 {forecast?.metrics && JSON.stringify(forecast.metrics).slice(0, 80)}
               </div>
             </>
@@ -287,7 +287,7 @@ export default function PredictionsPage() {
         </CardContent>
       </Card>
 
-      <p className="pb-4 text-center text-[11px] text-slate-600">
+      <p className="pb-4 text-center text-[11px] text-zinc-500">
         XGBoost v1 · DistilBERT fine-tuned (fallback: keyword model) · Prophet (fallback: seasonal-naive) · HDBSCAN (fallback: DBSCAN)
       </p>
     </div>

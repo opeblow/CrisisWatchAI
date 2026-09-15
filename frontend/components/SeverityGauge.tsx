@@ -24,7 +24,7 @@ export default function SeverityGauge({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="rgba(0,0,0,0.08)"
           strokeWidth={stroke}
         />
         <circle
@@ -44,7 +44,7 @@ export default function SeverityGauge({
         <span className="text-3xl font-bold" style={{ color }}>
           {clamped}
         </span>
-        <span className="text-[11px] font-semibold tracking-widest text-slate-400">
+        <span className="text-[11px] font-semibold tracking-widest text-zinc-500">
           {SEVERITY_LABELS[clamped]}
         </span>
       </div>

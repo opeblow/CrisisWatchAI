@@ -11,11 +11,11 @@ export const API_BASE =
     : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const SEVERITY_COLORS: Record<number, string> = {
-  1: "#22c55e",
-  2: "#84cc16",
-  3: "#f59e0b",
-  4: "#ef4444",
-  5: "#a855f7",
+  1: "#737373",
+  2: "#D4D4D8",
+  3: "#EAB308",
+  4: "#FACC15",
+  5: "#FDE047",
 };
 
 export const SEVERITY_LABELS: Record<number, string> = {

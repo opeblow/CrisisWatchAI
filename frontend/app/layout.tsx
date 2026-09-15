@@ -14,10 +14,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" style={{ backgroundColor: "#0a0a0f", colorScheme: "dark" }}>
-      <body className="min-h-screen bg-navy-deep text-slate-100 antialiased">
+    <html lang="en" style={{ backgroundColor: "#ffffff", colorScheme: "light" }}>
+      <body className="min-h-screen bg-white text-zinc-900 antialiased">
         <Providers>
-          <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.12),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(168,85,247,0.08),transparent_50%)]" />
           <AppShell>{children}</AppShell>
         </Providers>
       </body>

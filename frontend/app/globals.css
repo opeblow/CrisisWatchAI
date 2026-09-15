@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background-color: #0a0a0f;
+  background-color: #ffffff;
 }
 
 ::-webkit-scrollbar {
@@ -18,39 +18,39 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(217, 119, 6, 0.25);
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(202, 138, 4, 0.45);
 }
 
 .leaflet-container {
-  background: #0f172a;
+  background: #eef2f7;
   font-family: inherit;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #0f172a;
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #ffffff;
+  color: #18181b;
+  border: 1px solid rgba(234, 179, 8, 0.35);
   border-radius: 12px;
 }
 .leaflet-popup-close-button {
-  color: #94a3b8 !important;
+  color: #71717a !important;
 }
 .leaflet-control-attribution {
-  background: rgba(10, 10, 15, 0.7) !important;
-  color: #64748b !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #a1a1aa !important;
   font-size: 9px !important;
 }
 .leaflet-control-attribution a {
-  color: #64748b !important;
+  color: #a1a1aa !important;
 }
 .leaflet-bar a {
-  background: #0f172a !important;
-  color: #e2e8f0 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: #ffffff !important;
+  color: #18181b !important;
+  border-color: rgba(234, 179, 8, 0.35) !important;
 }
 
 /* Markdown report rendering */
@@ -58,58 +58,54 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 1rem 0 0.5rem;
-  color: #f8fafc;
+  color: #18181b;
 }
 .markdown-report h2 {
   font-size: 1.2rem;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
-  color: #e2e8f0;
+  color: #27272a;
 }
 .markdown-report h3 {
   font-size: 1rem;
   font-weight: 600;
   margin: 1rem 0 0.4rem;
-  color: #cbd5e1;
+  color: #3f3f46;
 }
 .markdown-report p {
   margin: 0.4rem 0;
-  color: #94a3b8;
+  color: #52525b;
   line-height: 1.6;
 }
 .markdown-report ul {
   margin: 0.4rem 0 0.4rem 1.25rem;
   list-style: disc;
-  color: #94a3b8;
+  color: #52525b;
 }
 .markdown-report li {
   margin: 0.2rem 0;
 }
 .markdown-report hr {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(234, 179, 8, 0.25);
   margin: 1rem 0;
 }
 .markdown-report strong {
-  color: #e2e8f0;
+  color: #18181b;
 }
 .markdown-report code {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(250, 204, 21, 0.18);
   padding: 0.1rem 0.3rem;
   border-radius: 4px;
   font-size: 0.85em;
-  color: #93c5fd;
+  color: #854d0e;
 }
-.markdown-report table {
-  margin: 0.6rem 0;
-  border-collapse: collapse;
+.markdown-report a {
+  color: #a16207;
+  text-decoration: underline;
 }
 .markdown-report table td,
 .markdown-report table th {
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.35);
   padding: 0.35rem 0.7rem;
   font-size: 0.85rem;
-}
-.markdown-report a {
-  color: #60a5fa;
-  text-decoration: underline;
 }

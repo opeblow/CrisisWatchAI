@@ -17,14 +17,14 @@ import {
 } from "recharts";
 import { SEVERITY_COLORS, SEVERITY_LABELS, EVENT_TYPE_LABELS } from "@/lib/utils";
 
-const AXIS = { fontSize: 11, fill: "#64748b" };
-const GRID = "rgba(255,255,255,0.06)";
+const AXIS = { fontSize: 11, fill: "#71717a" };
+const GRID = "rgba(0,0,0,0.07)";
 const TOOLTIP_STYLE = {
-  backgroundColor: "#0f172a",
-  border: "1px solid rgba(255,255,255,0.15)",
+  backgroundColor: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.12)",
   borderRadius: 12,
   fontSize: 12,
-  color: "#e2e8f0",
+  color: "#18181b",
 };
 
 export function TrendChart({
@@ -39,8 +39,8 @@ export function TrendChart({
         <defs>
           {Object.keys(data[0] ?? {}).filter((k) => k !== "date").map((k) => (
             <linearGradient key={k} id={`grad-${k}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="0%" stopColor="#FACC15" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#FACC15" stopOpacity={0} />
             </linearGradient>
           ))}
         </defs>
@@ -53,7 +53,7 @@ export function TrendChart({
             key={k}
             type="monotone"
             dataKey={k}
-            stroke="#3b82f6"
+            stroke="#EAB308"
             fill={`url(#grad-${k})`}
             strokeWidth={2}
           />
@@ -101,7 +101,7 @@ export function TopRegionsBar({ data }: { data: { country: string; count: number
         <Tooltip contentStyle={TOOLTIP_STYLE} />
         <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={14}>
           {data.map((_, i) => (
-            <Cell key={i} fill={i < 2 ? "#ef4444" : i < 5 ? "#f59e0b" : "#3b82f6"} />
+            <Cell key={i} fill={i < 2 ? "#FACC15" : i < 5 ? "#EAB308" : "#C2410C"} />
           ))}
         </Bar>
       </BarChart>
@@ -120,8 +120,8 @@ export function ForecastChart({
       <AreaChart data={points}>
         <defs>
           <linearGradient id="grad-fc" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.05} />
+            <stop offset="0%" stopColor="#FACC15" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="#FACC15" stopOpacity={0.05} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke={GRID} vertical={false} />
@@ -131,9 +131,9 @@ export function ForecastChart({
         }} />
         <YAxis tick={AXIS} tickLine={false} axisLine={false} width={30} />
         <Tooltip contentStyle={TOOLTIP_STYLE} />
-        <Area type="monotone" dataKey="yhat_upper" stroke="none" fill="rgba(59,130,246,0.08)" />
-        <Area type="monotone" dataKey="yhat_lower" stroke="none" fill="rgba(59,130,246,0.08)" />
-        <Area type="monotone" dataKey="yhat" stroke="#3b82f6" strokeWidth={2.5} fill="url(#grad-fc)" />
+        <Area type="monotone" dataKey="yhat_upper" stroke="none" fill="rgba(234,179,8,0.12)" />
+        <Area type="monotone" dataKey="yhat_lower" stroke="none" fill="rgba(234,179,8,0.12)" />
+        <Area type="monotone" dataKey="yhat" stroke="#EAB308" strokeWidth={2.5} fill="url(#grad-fc)" />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -141,7 +141,7 @@ export function ForecastChart({
 
 function EmptyChart() {
   return (
-    <div className="flex h-[260px] items-center justify-center text-sm text-slate-500">
+    <div className="flex h-[260px] items-center justify-center text-sm text-zinc-400">
       No data yet
     </div>
   );
