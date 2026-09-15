@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import feedparser
 import httpx
 
 from ..http import fetch_text
-from ..schema import CrisisEvent, UNKNOWN_COORD
+from ..schema import UNKNOWN_COORD, CrisisEvent
 from ..utils import parse_datetime, strip_html
 from .base import BaseSource, safe_float
 
@@ -55,7 +55,7 @@ _COUNTRY_RE = re.compile(r"\bCountry\s*[:\-]\s*([A-Za-z][A-Za-z\s.']*)", re.IGNO
 _REGION_RE = re.compile(r"\bRegion\s*[:\-]\s*([A-Za-z][A-Za-z\s.']*)", re.IGNORECASE)
 
 
-def _detect_event_type(text: str) -> Optional[str]:
+def _detect_event_type(text: str) -> str | None:
     """Fallback event-type detection from keywords in a text snippet."""
     lowered = strip_html(text).lower()
     for event_type, keywords in TYPE_KEYWORDS.items():
@@ -76,11 +76,11 @@ class GDACSSource(BaseSource):
     name = "gdacs"
     default_requests_per_second = 0.5
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.feed_url = self.config.get("feed_url", DEFAULT_FEED_URL)
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         content = await fetch_text(
             client, self.feed_url, rate_limiter=self.rate_limiter,
             retries=self.config.get("retries"),
@@ -92,14 +92,14 @@ class GDACSSource(BaseSource):
                 getattr(feed, "bozo_exception", "unknown error"),
             )
 
-        events: List[CrisisEvent] = []
+        events: list[CrisisEvent] = []
         for entry in feed.entries:
             event = self._parse_entry(entry)
             if event is not None:
                 events.append(event)
         return events
 
-    def _parse_entry(self, entry: Dict[str, Any]) -> Optional[CrisisEvent]:
+    def _parse_entry(self, entry: dict[str, Any]) -> CrisisEvent | None:
         title = strip_html(entry.get("title", ""))
         summary = strip_html(entry.get("summary") or entry.get("description") or "")
         combined = f"{title} {summary}"
@@ -150,7 +150,7 @@ class GDACSSource(BaseSource):
         return 3
 
     @staticmethod
-    def _event_type(entry: Dict[str, Any], combined_text: str) -> Optional[str]:
+    def _event_type(entry: dict[str, Any], combined_text: str) -> str | None:
         # 1. Explicit GDACS category code (e.g. <category>EQ</category>).
         for tag in entry.get("tags", []) or []:
             term = str(getattr(tag, "term", "") or "").upper()
@@ -165,7 +165,7 @@ class GDACSSource(BaseSource):
         return _detect_event_type(combined_text)
 
     @staticmethod
-    def _coordinates(entry: Dict[str, Any]):
+    def _coordinates(entry: dict[str, Any]):
         """Extract (lat, lon) from GeoRSS fields (georss:point / geo:lat/long)."""
         point = entry.get("geo_point")
         if point is not None and isinstance(point, (tuple, list)) and len(point) >= 2:
@@ -178,7 +178,7 @@ class GDACSSource(BaseSource):
         return UNKNOWN_COORD, UNKNOWN_COORD
 
     @staticmethod
-    def _region(entry: Dict[str, Any], summary: str) -> str:
+    def _region(entry: dict[str, Any], summary: str) -> str:
         featurename = entry.get("georss_featurename")
         if featurename:
             return strip_html(featurename)
