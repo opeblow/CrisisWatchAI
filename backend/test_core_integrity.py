@@ -1,6 +1,6 @@
 """Core integrity unit tests for CrisisWatchAI backend."""
 from datetime import datetime, timezone
-import numpy as np
+
 import pandas as pd
 
 from data.preprocessing import _dedup_key
