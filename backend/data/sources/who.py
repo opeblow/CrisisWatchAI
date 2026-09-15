@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import feedparser
 import httpx
 
 from ..http import fetch_text
-from ..schema import CrisisEvent, UNKNOWN_COORD
-from ..utils import first_int, parse_datetime, strip_html
+from ..schema import UNKNOWN_COORD, CrisisEvent
+from ..utils import parse_datetime, strip_html
 from .base import BaseSource
 
 logger = logging.getLogger(__name__)
@@ -35,11 +35,11 @@ _DEATH_PATTERN = re.compile(r"(?P<count>[\d,]+)\s+(?:reported\s+)?deaths?", re.I
 _TITLE_SPLIT = re.compile(r"[\s\u00b7|]+?[-:\u2013\u2014;]\s+")
 
 
-def _count_from(count: Optional[str]) -> Optional[int]:
+def _count_from(count: str | None) -> int | None:
     return int(count.replace(",", "")) if count else None
 
 
-def estimate_severity(cases: Optional[int], deaths: Optional[int]) -> int:
+def estimate_severity(cases: int | None, deaths: int | None) -> int:
     """Heuristic severity from reported case/death counts."""
     if deaths is not None and deaths >= 100:
         return 5
@@ -58,11 +58,11 @@ class WHOSource(BaseSource):
     name = "who"
     default_requests_per_second = 0.5
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.feed_url = self.config.get("feed_url", DEFAULT_FEED_URL)
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         content = await fetch_text(
             client, self.feed_url, rate_limiter=self.rate_limiter,
             retries=self.config.get("retries"),
@@ -71,14 +71,14 @@ class WHOSource(BaseSource):
         if feed.get("bozo") and not feed.entries:
             logger.warning("WHO feed failed to parse: %s", getattr(feed, "bozo_exception", "unknown"))
 
-        events: List[CrisisEvent] = []
+        events: list[CrisisEvent] = []
         for entry in feed.entries:
             event = self._parse_entry(entry)
             if event is not None:
                 events.append(event)
         return events
 
-    def _parse_entry(self, entry: Dict[str, Any]) -> Optional[CrisisEvent]:
+    def _parse_entry(self, entry: dict[str, Any]) -> CrisisEvent | None:
         title = strip_html(entry.get("title", ""))
         description = strip_html(entry.get("summary") or entry.get("description") or "")
         if not title and not description:
@@ -134,7 +134,7 @@ class WHOSource(BaseSource):
         return disease, guess
 
     @staticmethod
-    def _extract_cases(text: str) -> Optional[int]:
+    def _extract_cases(text: str) -> int | None:
         for match in _CASE_PATTERN.finditer(text):
             cases = _count_from(match.groupdict().get("count"))
             if cases is not None:
@@ -142,7 +142,7 @@ class WHOSource(BaseSource):
         return None
 
     @staticmethod
-    def _first_match(text: str, pattern: re.Pattern) -> Optional[str]:
+    def _first_match(text: str, pattern: re.Pattern) -> str | None:
         match = pattern.search(text)
         if not match:
             return None
