@@ -1,0 +1,1 @@
+"""CrisisWatch AI backend package."""
