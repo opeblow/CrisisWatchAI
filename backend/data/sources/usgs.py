@@ -10,7 +10,7 @@ import httpx
 from ..http import fetch_json
 from ..schema import UNKNOWN_COORD, CrisisEvent
 from ..utils import strip_html
-from .base import BaseSource, safe_float, safe_int
+from .base import BaseSource, safe_float
 
 logger = logging.getLogger(__name__)
 
