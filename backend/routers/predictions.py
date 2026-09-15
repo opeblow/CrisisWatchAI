@@ -216,9 +216,11 @@ async def forecast_for_region(
             for e in events
         ]
     )
-    series = aggregate_crises(df, group_by=("type" if crisis_type is None else "total"), freq="D")
-    if crisis_type is not None:
+    series = aggregate_crises(df, group_by="type", freq="D")
+    if crisis_type:
         series = series[series.group == crisis_type]
+        if series.empty:
+            series = aggregate_crises(df, group_by="total", freq="D")
 
     def train_and_predict() -> dict[str, Any]:
         fc = CrisisForecaster()
