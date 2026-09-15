@@ -175,10 +175,12 @@ def _dedup_key(event: CrisisEvent) -> tuple:
     if has_coords:
         lat = round(float(event.latitude), 2)
         lon = round(float(event.longitude), 2)
+        title_scope = None
     else:
         lat = lon = None
+        title_scope = (event.country.strip().lower() or _dedup_title_key(event)[:25]) if event.title else None
     date = event.timestamp.date() if event.timestamp else None
-    return (event.event_type, lat, lon, date)
+    return (event.event_type, lat, lon, title_scope, date)
 
 
 def _dedup_title_key(event: CrisisEvent) -> str:
