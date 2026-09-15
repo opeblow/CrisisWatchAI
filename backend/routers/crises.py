@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
@@ -50,19 +50,19 @@ def _serialize(event: CrisisEvent) -> dict[str, Any]:
 
 def _apply_filters(
     stmt: Any,
-    event_type: Optional[str],
-    severity_min: Optional[int],
-    severity_max: Optional[int],
-    country: Optional[str],
-    region: Optional[str],
-    date_from: Optional[datetime],
-    date_to: Optional[datetime],
+    event_type: str | None,
+    severity_min: int | None,
+    severity_max: int | None,
+    country: str | None,
+    region: str | None,
+    date_from: datetime | None,
+    date_to: datetime | None,
 ) -> Any:
     if event_type:
         try:
             et = CrisisEventType(event_type)
         except ValueError:
-            raise HTTPException(status_code=422, detail=f"Invalid event_type: {event_type}")
+            raise HTTPException(status_code=422, detail=f"Invalid event_type: {event_type}") from None
         stmt = stmt.where(CrisisEvent.event_type == et)
     if severity_min is not None:
         stmt = stmt.where(CrisisEvent.severity >= severity_min)
@@ -81,13 +81,13 @@ def _apply_filters(
 
 @router.get("", summary="List crisis events")
 async def list_crises(
-    event_type: Optional[str] = Query(None, description="Filter by event type"),
-    severity_min: Optional[int] = Query(None, ge=1, le=5),
-    severity_max: Optional[int] = Query(None, ge=1, le=5),
-    country: Optional[str] = Query(None),
-    region: Optional[str] = Query(None),
-    date_from: Optional[datetime] = Query(None),
-    date_to: Optional[datetime] = Query(None),
+    event_type: str | None = Query(None, description="Filter by event type"),
+    severity_min: int | None = Query(None, ge=1, le=5),
+    severity_max: int | None = Query(None, ge=1, le=5),
+    country: str | None = Query(None),
+    region: str | None = Query(None),
+    date_from: datetime | None = Query(None),
+    date_to: datetime | None = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -103,13 +103,13 @@ async def list_crises(
 
 @router.get("/map", summary="Crisis events as GeoJSON for map rendering")
 async def crises_geojson(
-    event_type: Optional[str] = Query(None),
-    severity_min: Optional[int] = Query(None, ge=1, le=5),
-    severity_max: Optional[int] = Query(None, ge=1, le=5),
-    country: Optional[str] = Query(None),
-    region: Optional[str] = Query(None),
-    date_from: Optional[datetime] = Query(None),
-    date_to: Optional[datetime] = Query(None),
+    event_type: str | None = Query(None),
+    severity_min: int | None = Query(None, ge=1, le=5),
+    severity_max: int | None = Query(None, ge=1, le=5),
+    country: str | None = Query(None),
+    region: str | None = Query(None),
+    date_from: datetime | None = Query(None),
+    date_to: datetime | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     base = _apply_filters(
