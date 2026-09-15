@@ -15,8 +15,9 @@ from __future__ import annotations
 import base64
 import io
 import logging
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -36,7 +37,7 @@ TOP_N: int = 5
 
 # Feature name -> short human phrase, keyed by exact name or a suffix match
 # (one-hot encoded columns arrive as ``event_type_<value>``).
-_PHRASES: Dict[str, str] = {
+_PHRASES: dict[str, str] = {
     "population_density_estimate": "a high population density",
     "historical_frequency_in_region": "historically active region",
     "source_reliability_score": "high source reliability",
@@ -81,10 +82,10 @@ class ModelExplainer:
     def explain(
         self,
         model: Any,
-        features_dict: Dict[str, Any],
-        feature_names: Optional[Sequence[str]] = None,
-        background_data: Optional[Union[pd.DataFrame, np.ndarray]] = None,
-    ) -> Dict[str, Any]:
+        features_dict: dict[str, Any],
+        feature_names: Sequence[str] | None = None,
+        background_data: pd.DataFrame | np.ndarray | None = None,
+    ) -> dict[str, Any]:
         """Return the top-5 SHAP features influencing one prediction.
 
         Parameters
@@ -135,9 +136,9 @@ class ModelExplainer:
     def generate_summary_plot(
         self,
         model: Any,
-        X: Union[pd.DataFrame, np.ndarray],
-        feature_names: Optional[Sequence[str]] = None,
-        background_data: Optional[Union[pd.DataFrame, np.ndarray]] = None,
+        X: pd.DataFrame | np.ndarray,
+        feature_names: Sequence[str] | None = None,
+        background_data: pd.DataFrame | np.ndarray | None = None,
     ) -> str:
         """Render a SHAP summary (beeswarm) plot and return it as a data URI ``str``."""
         _require_shap()
@@ -185,9 +186,9 @@ class ModelExplainer:
     def generate_force_plot(
         self,
         model: Any,
-        features_dict: Dict[str, Any],
-        feature_names: Optional[Sequence[str]] = None,
-        background_data: Optional[Union[pd.DataFrame, np.ndarray]] = None,
+        features_dict: dict[str, Any],
+        feature_names: Sequence[str] | None = None,
+        background_data: pd.DataFrame | np.ndarray | None = None,
     ) -> str:
         """Render a SHAP force plot for a single prediction as a data URI ``str``."""
         _require_shap()
@@ -232,9 +233,9 @@ class ModelExplainer:
     def _explain_fallback(
         self,
         model: Any,
-        features_dict: Dict[str, Any],
-        feature_names: Optional[Sequence[str]],
-    ) -> Dict[str, Any]:
+        features_dict: dict[str, Any],
+        feature_names: Sequence[str] | None,
+    ) -> dict[str, Any]:
         """Local feature attribution when ``shap`` cannot be imported.
 
         Uses a per-feature occlusion approach: each feature value is replaced by
@@ -250,7 +251,7 @@ class ModelExplainer:
 
         baseline = X.copy()
         raw_mean = baseline.mean(axis=0)
-        contributions: List[Dict[str, Any]] = []
+        contributions: list[dict[str, Any]] = []
         for i in range(X.shape[1]):
             perturbed = baseline.copy()
             perturbed[:, i] = raw_mean[i]
@@ -280,9 +281,9 @@ class ModelExplainer:
     def _prepare_model_input(
         self,
         model: Any,
-        features_dict: Dict[str, Any],
-        feature_names: Optional[Sequence[str]],
-    ) -> Tuple[Any, np.ndarray, List[str]]:
+        features_dict: dict[str, Any],
+        feature_names: Sequence[str] | None,
+    ) -> tuple[Any, np.ndarray, list[str]]:
         """Return ``(estimator, X_row, feature_names)`` for ``features_dict``."""
         estimator = self._as_estimator(model)
 
@@ -317,8 +318,8 @@ class ModelExplainer:
         return model
 
     def _top_features(
-        self, values: np.ndarray, data: np.ndarray, names: List[str], predicted_class: int
-    ) -> List[Dict[str, Any]]:
+        self, values: np.ndarray, data: np.ndarray, names: list[str], predicted_class: int
+    ) -> list[dict[str, Any]]:
         order = np.argsort(np.abs(values))[::-1][:TOP_N]
         features = []
         for i in order:
@@ -349,7 +350,7 @@ def _mode_class(estimator: Any, X: np.ndarray) -> int:
 
 def _select_class_channel(
     shap_values: Any, explainer: Any, class_idx: int
-) -> Tuple[np.ndarray, float]:
+) -> tuple[np.ndarray, float]:
     """Reduce multi-class SHAP output to the channel for ``class_idx``."""
     if isinstance(shap_values, (list, tuple)):
         arr = np.asarray(shap_values[class_idx], dtype=float)
@@ -398,8 +399,8 @@ def _figure_to_base64(fig: Any) -> str:
 
 
 def natural_language_explanation(
-    shap_features: Sequence[Dict[str, Any]],
-    predicted_severity: Optional[int] = None,
+    shap_features: Sequence[dict[str, Any]],
+    predicted_severity: int | None = None,
 ) -> str:
     """Render a human-readable explanation from :meth:`ModelExplainer.explain` output.
 
@@ -426,7 +427,7 @@ def natural_language_explanation(
     if not increases:
         increases = features[:1]
 
-    def _phrase(f: Dict[str, Any]) -> str:
+    def _phrase(f: dict[str, Any]) -> str:
         name = f["feature_name"]
         val = f["value"]
         magnitude = f"({f['shap_value']:+.2f})"
