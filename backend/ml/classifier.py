@@ -43,7 +43,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import joblib
 import numpy as np
@@ -58,8 +58,8 @@ from xgboost import XGBClassifier
 
 logger = logging.getLogger(__name__)
 
-SEVERITY_LEVELS: List[int] = [1, 2, 3, 4, 5]
-SEVERITY_NAMES: Dict[int, str] = {
+SEVERITY_LEVELS: list[int] = [1, 2, 3, 4, 5]
+SEVERITY_NAMES: dict[int, str] = {
     1: "Low",
     2: "Medium",
     3: "High",
@@ -67,8 +67,8 @@ SEVERITY_NAMES: Dict[int, str] = {
     5: "Catastrophic",
 }
 
-CATEGORICAL_FEATURES: List[str] = ["event_type"]
-NUMERIC_FEATURES: List[str] = [
+CATEGORICAL_FEATURES: list[str] = ["event_type"]
+NUMERIC_FEATURES: list[str] = [
     "latitude",
     "longitude",
     "population_density_estimate",
@@ -80,9 +80,9 @@ NUMERIC_FEATURES: List[str] = [
     "day_of_week",
     "source_reliability_score",
 ]
-FEATURES: List[str] = CATEGORICAL_FEATURES + NUMERIC_FEATURES
+FEATURES: list[str] = CATEGORICAL_FEATURES + NUMERIC_FEATURES
 
-EVENT_TYPES: List[str] = [
+EVENT_TYPES: list[str] = [
     "conflict",
     "flood",
     "earthquake",
@@ -97,7 +97,7 @@ MODEL_DIR: Path = Path(__file__).resolve().parent / "models"
 MODEL_PATH: Path = MODEL_DIR / "crisis_classifier.joblib"
 
 # (lat, lon, event_type, severity_bias) worlds hotspots used by the synthetic generator.
-_SYNTH_HOTSPOTS: List[Tuple[float, float, str, float]] = [
+_SYNTH_HOTSPOTS: list[tuple[float, float, str, float]] = [
     (37.77, -122.41, "earthquake", 3.2),
     (23.74, 90.41, "flood", 3.4),
     (8.44, 115.20, "cyclone", 3.3),
@@ -108,7 +108,7 @@ _SYNTH_HOTSPOTS: List[Tuple[float, float, str, float]] = [
     (13.37, 103.19, "displacement", 3.0),
 ]
 
-_PARAM_DISTRIBUTIONS: Dict[str, Any] = {
+_PARAM_DISTRIBUTIONS: dict[str, Any] = {
     "clf__n_estimators": randint(100, 500),
     "clf__max_depth": randint(4, 12),
     "clf__learning_rate": uniform(0.01, 0.29),
@@ -121,7 +121,7 @@ _PARAM_DISTRIBUTIONS: Dict[str, Any] = {
 
 def generate_synthetic_data(
     n_samples: int = 2500, random_state: int = 42
-) -> Tuple[pd.DataFrame, pd.Series]:
+) -> tuple[pd.DataFrame, pd.Series]:
     """Generate a realistic synthetic dataset of crisis events.
 
     Events are drawn from a set of geographic hotspots (with a tunable degree of
@@ -265,10 +265,10 @@ class CrisisClassifier:
 
     def __init__(
         self,
-        model_path: Union[str, Path] = MODEL_PATH,
+        model_path: str | Path = MODEL_PATH,
         n_jobs: int = -1,
         random_state: int = 42,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ) -> None:
         self.model_path = Path(model_path)
         self.n_jobs = n_jobs
@@ -276,9 +276,9 @@ class CrisisClassifier:
         # ``seed`` is accepted for backward compatibility with earlier configs.
         if seed is not None:
             self.random_state = seed
-        self.pipeline: Optional[Pipeline] = None
-        self.cv_summary: Optional[List[Dict[str, Any]]] = None
-        self._classifier: Optional[XGBClassifier] = None
+        self.pipeline: Pipeline | None = None
+        self.cv_summary: list[dict[str, Any]] | None = None
+        self._classifier: XGBClassifier | None = None
         # Maps the model's internal contiguous class index back to a real severity
         # level.  Populated during training (some levels may be absent in the data).
         self._index_to_severity: np.ndarray = np.asarray(SEVERITY_LEVELS, dtype=int)
@@ -286,13 +286,13 @@ class CrisisClassifier:
     # ------------------------------------------------------------------ core
     def train(
         self,
-        X: Optional[pd.DataFrame] = None,
-        y: Optional[Union[pd.Series, np.ndarray, List[int]]] = None,
+        X: pd.DataFrame | None = None,
+        y: pd.Series | np.ndarray | list[int] | None = None,
         n_iter: int = 20,
         cv_folds: int = 3,
         use_synthetic_data: bool = True,
         save: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Train the classifier.
 
         Splits ``X``/``y`` into stratified 70/15/15 train/validation/test sets,
@@ -333,7 +333,7 @@ class CrisisClassifier:
         if len(X) != len(y):
             raise ValueError(f"X ({len(X)} rows) and y ({len(y)} rows) must have equal length")
         labels, counts = np.unique(y, return_counts=True)
-        logger.info("Training on %d rows; label distribution: %s", len(y), dict(zip(labels, counts)))
+        logger.info("Training on %d rows; label distribution: %s", len(y), dict(zip(labels, counts, strict=False)))
         if not np.all(np.isin(labels, SEVERITY_LEVELS)):
             raise ValueError(f"Labels must be within {SEVERITY_LEVELS}; got {labels.tolist()}")
         # XGBoost requires contiguous 0-indexed classes, so renumber the severity
@@ -392,7 +392,7 @@ class CrisisClassifier:
             "random_state": self.random_state,
         }
 
-    def predict(self, features: Union[Dict[str, Any], pd.DataFrame]) -> Union[Dict[str, Any], pd.DataFrame]:
+    def predict(self, features: dict[str, Any] | pd.DataFrame) -> dict[str, Any] | pd.DataFrame:
         """Predict severity for one event (dict) or a batch of events (DataFrame).
 
         For a single dict the return value is::
@@ -429,7 +429,7 @@ class CrisisClassifier:
             out = features.copy()
             out["severity"] = self._index_to_severity[np.argmax(probs, axis=1)]
             out["confidence"] = np.max(probs, axis=1)
-            for i, cls in enumerate(SEVERITY_LEVELS):
+            for _i, cls in enumerate(SEVERITY_LEVELS):
                 present = np.where(self._index_to_severity == cls)[0]
                 out[f"prob_{cls}"] = probs[:, present[0]] if present.size else np.zeros(len(probs))
             return out
@@ -437,8 +437,8 @@ class CrisisClassifier:
         raise TypeError("features must be a dict or a pandas DataFrame")
 
     def evaluate(
-        self, X_test: pd.DataFrame, y_test: Union[pd.Series, np.ndarray, List[int]]
-    ) -> Dict[str, Any]:
+        self, X_test: pd.DataFrame, y_test: pd.Series | np.ndarray | list[int]
+    ) -> dict[str, Any]:
         """Evaluate the fitted model on a test set.
 
         Returns ``f1_macro`` (float), ``accuracy`` (float), ``confusion_matrix``
@@ -477,7 +477,7 @@ class CrisisClassifier:
         )
 
     # ------------------------------------------------------------ persistence
-    def save_model(self, path: Optional[Union[str, Path]] = None) -> Path:
+    def save_model(self, path: str | Path | None = None) -> Path:
         """Serialize the pipeline (and its class mapping) with ``joblib``."""
         if self.pipeline is None:
             raise RuntimeError("Model has not been trained - nothing to save")
@@ -493,7 +493,7 @@ class CrisisClassifier:
         logger.info("Saved classifier to %s", dest)
         return dest
 
-    def load_model(self, path: Optional[Union[str, Path]] = None) -> "CrisisClassifier":
+    def load_model(self, path: str | Path | None = None) -> CrisisClassifier:
         """Load a previously saved pipeline with ``joblib``."""
         src = Path(path) if path else self.model_path
         if not src.exists():
@@ -535,9 +535,9 @@ class CrisisClassifier:
 
     def _stratified_split(
         self, X: pd.DataFrame, y: np.ndarray, cv_folds: int
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Returns (train_idx, temp_idx, val_idx, test_idx) for a 70/15/15 split."""
-        for cls, count in zip(*np.unique(y, return_counts=True)):
+        for cls, count in zip(*np.unique(y, return_counts=True), strict=False):
             if count < max(5, cv_folds):
                 logger.warning("Class %d has only %d samples - cross-validation may be unstable", cls, count)
 
@@ -552,12 +552,12 @@ class CrisisClassifier:
         return train_idx, temp_idx, val_idx, test_idx
 
     @staticmethod
-    def _summarize_cv(search: RandomizedSearchCV) -> List[Dict[str, Any]]:
+    def _summarize_cv(search: RandomizedSearchCV) -> list[dict[str, Any]]:
         """Extract then sort the CV results for a compact training summary."""
         results = search.cv_results_
         rows = []
         for params, mean_score, std_score in zip(
-            results["params"], results["mean_test_score"], results["std_test_score"]
+            results["params"], results["mean_test_score"], results["std_test_score"], strict=False
         ):
             rows.append(
                 {
