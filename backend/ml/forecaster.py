@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 import pickle
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -35,10 +35,10 @@ MODEL_PATH: Path = MODEL_DIR / "crisis_forecaster.pkl"
 
 def aggregate_crises(
     events: pd.DataFrame,
-    group_by: Optional[str] = "type",
+    group_by: str | None = "type",
     freq: str = "W",
     date_column: str = "date",
-    count_column: Optional[str] = None,
+    count_column: str | None = None,
 ) -> pd.DataFrame:
     """Roll crisis events up into a (ds, group, y) long-form time series.
 
@@ -75,10 +75,7 @@ def aggregate_crises(
     if ds_col != "ds":
         df = df.rename(columns={ds_col: "ds"})
 
-    if count_column:
-        value = df[count_column]
-    else:
-        value = pd.Series(1, index=df.index)
+    value = df[count_column] if count_column else pd.Series(1, index=df.index)
 
     if group_by is None or group_by == "total":
         if count_column:
@@ -117,16 +114,16 @@ class CrisisForecaster:
         Inferred observation frequency used for future frames.
     """
 
-    def __init__(self, model_path: Union[str, Path] = MODEL_PATH, seed: int = 42) -> None:
+    def __init__(self, model_path: str | Path = MODEL_PATH, seed: int = 42) -> None:
         self.model_path = Path(model_path)
         self.seed = seed
         self.model: Any = None
-        self.regressors: List[str] = []
+        self.regressors: list[str] = []
         self.freq: str = "D"
-        self._training_df: Optional[pd.DataFrame] = None
+        self._training_df: pd.DataFrame | None = None
 
     # ------------------------------------------------------------------ train
-    def train(self, df: pd.DataFrame) -> Dict[str, Any]:
+    def train(self, df: pd.DataFrame) -> dict[str, Any]:
         """Fit a Prophet model on a ``(ds, y)`` frame, registering extra regressors.
 
         Parameters
@@ -239,7 +236,7 @@ class CrisisForecaster:
         self,
         periods: int = 30,
         freq: str = "D",
-        future_regressors: Optional[Union[pd.DataFrame, Dict[str, List[Any]]]] = None,
+        future_regressors: pd.DataFrame | dict[str, list[Any]] | None = None,
         include_history: bool = True,
     ) -> pd.DataFrame:
         """Forecast ``periods`` future observations at frequency ``freq``.
@@ -271,7 +268,7 @@ class CrisisForecaster:
         return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
 
     # --------------------------------------------------------- cross-validation
-    def cross_validate(self, n_splits: int = 3, freq: Optional[str] = None) -> Dict[str, Any]:
+    def cross_validate(self, n_splits: int = 3, freq: str | None = None) -> dict[str, Any]:
         """Back-test the fitted series with ``TimeSeriesSplit``.
 
         Walks forward through the training history; for each fold a fresh Prophet
@@ -298,7 +295,7 @@ class CrisisForecaster:
 
         freq = freq or self.freq or "D"
         tscv = TimeSeriesSplit(n_splits=n_splits)
-        folds: List[Dict[str, Any]] = []
+        folds: list[dict[str, Any]] = []
         all_mape, all_rmse = [], []
 
         for fold, (train_idx, test_idx) in enumerate(tscv.split(frame), start=1):
@@ -342,14 +339,14 @@ class CrisisForecaster:
         }
 
     def _cross_validate_naive(
-        self, frame: pd.DataFrame, n_splits: int, freq: Optional[str]
-    ) -> Dict[str, Any]:
+        self, frame: pd.DataFrame, n_splits: int, freq: str | None
+    ) -> dict[str, Any]:
         """Walk-forward validation for the seasonal-naive fallback model."""
         from sklearn.model_selection import TimeSeriesSplit
 
         freq = freq or self.freq or "D"
         tscv = TimeSeriesSplit(n_splits=n_splits)
-        folds: List[Dict[str, Any]] = []
+        folds: list[dict[str, Any]] = []
         all_mape, all_rmse = [], []
 
         for fold, (train_idx, test_idx) in enumerate(tscv.split(frame), start=1):
@@ -391,7 +388,7 @@ class CrisisForecaster:
         self._train_naive(df)
 
     # ------------------------------------------------------------ persistence
-    def save_model(self, path: Optional[Union[str, Path]] = None) -> Path:
+    def save_model(self, path: str | Path | None = None) -> Path:
         """Serialize the fitted Prophet model (and config) with ``pickle``."""
         if self.model is None:
             raise RuntimeError("Model has not been trained - nothing to save")
@@ -412,7 +409,7 @@ class CrisisForecaster:
         logger.info("Saved forecaster to %s", dest)
         return dest
 
-    def load_model(self, path: Optional[Union[str, Path]] = None) -> "CrisisForecaster":
+    def load_model(self, path: str | Path | None = None) -> CrisisForecaster:
         """Restore a forecaster previously saved with :meth:`save_model`."""
         src = Path(path) if path else self.model_path
         if not src.exists():
@@ -432,7 +429,7 @@ class CrisisForecaster:
     def _prepare_future_regressors(
         self,
         future: pd.DataFrame,
-        future_regressors: Optional[Union[pd.DataFrame, Dict[str, List[Any]]]],
+        future_regressors: pd.DataFrame | dict[str, list[Any]] | None,
         periods: int,
     ) -> pd.DataFrame:
         """Validate and align user-supplied future regressor values to ``future.ds``."""
