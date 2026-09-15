@@ -191,33 +191,37 @@ class CrisisForecaster:
         remainder; forecast noise is scaled by the training residual std.
         """
         target = train.set_index("ds")["y"]
-        first = train["ds"].iloc[0]
+        first = train["ds"].min()
+        last = train["ds"].max()
         td = pd.Timedelta(1, unit="D") if self.freq.startswith("D") else pd.Timedelta(7, unit="D")
-        dow_means = target.groupby(target.index.dayofweek).mean()
-        overall = target.mean()
-        dow_means = dow_means.reindex(range(7)).fillna(overall)
 
         x = (train["ds"] - first).dt.days.astype(float).values
         y = target.values.astype(float)
         trend_coef = np.polyfit(x, y, 1)
         trend_values = np.polyval(trend_coef, x)
-        dow_vals = np.array([dow_means[d.dayofweek] for d in train["ds"]])
-        resid = y - trend_values - dow_vals
+
+        detrended = y - trend_values
+        dow_series = pd.Series(detrended, index=train["ds"].dt.dayofweek)
+        dow_means = dow_series.groupby(dow_series.index).mean().reindex(range(7), fill_value=0.0)
+
+        resid = detrended - np.array([dow_means[d.dayofweek] for d in train["ds"]])
 
         self._model_naive = {
             "first": first,
+            "last": last,
             "step": td,
             "dow_means": dow_means.values,
             "trend_coef": trend_coef,
             "resid_std": float(np.std(resid)) if len(resid) > 1 else 1.0,
-            "mean": float(overall),
+            "mean": float(y.mean()) if len(y) else 0.0,
         }
         self.model = {"kind": "seasonal_naive"}
         self._training_df = train[["ds", "y"]]
 
     def _predict_naive(self, periods: int, freq: str) -> pd.DataFrame:
         p = self._model_naive
-        horizon = pd.date_range(start=p["first"], periods=periods, freq=freq)
+        start_date = p["last"] + p["step"]
+        horizon = pd.date_range(start=start_date, periods=periods, freq=freq)
         days = (pd.Series(horizon) - p["first"]).dt.days.astype(float).values
         seasonal = np.array([p["dow_means"][d.dayofweek] for d in horizon])
         trend = np.polyval(p["trend_coef"], days)
@@ -227,7 +231,7 @@ class CrisisForecaster:
         return pd.DataFrame({
             "ds": horizon,
             "yhat": yhat,
-            "yhat_lower": yhat - 1.96 * sigma,
+            "yhat_lower": np.maximum(0.0, yhat - 1.96 * sigma),
             "yhat_upper": yhat + 1.96 * sigma,
         })
 
