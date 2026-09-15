@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -29,11 +29,11 @@ class OpenMeteoSource(BaseSource):
     name = "open_meteo"
     default_requests_per_second = 5.0
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.api_url = self.config.get("api_url", DEFAULT_FORECAST_URL)
 
-    async def fetch_for_event(self, client: httpx.AsyncClient, event: CrisisEvent) -> Dict[str, Any]:
+    async def fetch_for_event(self, client: httpx.AsyncClient, event: CrisisEvent) -> dict[str, Any]:
         """Fetch current weather for one event's coordinates. Raises if the event
         has no valid coordinates."""
         lat, lon = event.latitude, event.longitude
@@ -54,10 +54,10 @@ class OpenMeteoSource(BaseSource):
     async def enrich_events(
         self,
         client: httpx.AsyncClient,
-        events: List[CrisisEvent],
+        events: list[CrisisEvent],
         *,
         max_concurrent: int = 5,
-    ) -> List[CrisisEvent]:
+    ) -> list[CrisisEvent]:
         """Attach current-weather metadata to events with coordinates.
 
         Args:
@@ -88,7 +88,7 @@ class OpenMeteoSource(BaseSource):
         return events
 
     @staticmethod
-    def _payload_to_weather(payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _payload_to_weather(payload: dict[str, Any]) -> dict[str, Any]:
         current = payload.get("current_weather") or payload.get("current") or {}
         temperature = current.get("temperature") or current.get("temperature_2m")
         wind_speed = current.get("windspeed") or current.get("wind_speed_10m")
