@@ -4,11 +4,11 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_db
@@ -22,8 +22,8 @@ router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 class GenerateReportRequest(BaseModel):
     region: str = Field(..., min_length=1, max_length=100)
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
     format: str = Field("markdown", pattern="^(markdown|pdf)$")
     include_predictions: bool = True
 
@@ -128,7 +128,7 @@ async def generate_report(
 
 @router.get("", summary="List generated reports")
 async def list_reports(
-    region: Optional[str] = Query(None),
+    region: str | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
