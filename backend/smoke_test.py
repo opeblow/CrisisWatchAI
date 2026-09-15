@@ -13,6 +13,7 @@ def out(label, resp):
         print(body[:600] + "...")
     else:
         print(body)
+    assert resp.status_code == 200, f"Endpoint {label} failed with status {resp.status_code}: {body}"
 
 
 async def main():
