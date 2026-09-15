@@ -3,7 +3,6 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -69,11 +68,11 @@ class CrisisEvent(Base):
     country: Mapped[str] = mapped_column(String(100), nullable=False)
     region: Mapped[str] = mapped_column(String(100), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    casualties: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    displaced: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    affected: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    raw_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    metadata_: Mapped[Optional[dict]] = mapped_column("metadata", JSON, nullable=True)
+    casualties: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    displaced: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    affected: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    raw_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
     location = None  # PostGIS geometry — populated via SQLAlchemy column at runtime if PostGIS is available
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -127,7 +126,7 @@ class Prediction(Base):
     id: Mapped[str] = mapped_column(
         UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    crisis_event_id: Mapped[Optional[str]] = mapped_column(
+    crisis_event_id: Mapped[str | None] = mapped_column(
         UUID(as_uuid=False),
         ForeignKey("crisis_events.id", ondelete="SET NULL"),
         nullable=True,
@@ -135,13 +134,13 @@ class Prediction(Base):
     prediction_type: Mapped[str] = mapped_column(String(100), nullable=False)
     predicted_value: Mapped[dict] = mapped_column(JSON, nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
-    shap_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    shap_values: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     model_version: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    crisis_event: Mapped[Optional[CrisisEvent]] = relationship(
+    crisis_event: Mapped[CrisisEvent | None] = relationship(
         "CrisisEvent", back_populates="predictions"
     )
 
