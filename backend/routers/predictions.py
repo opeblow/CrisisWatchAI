@@ -3,18 +3,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any
 
-import numpy as np
 import pandas as pd
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_db
-from db.models import CrisisEvent, Forecast, Prediction
+from db.models import CrisisEvent, Prediction
 from ml.classifier import CrisisClassifier
 from ml.clustering import CrisisClustering
 from ml.explainability import ModelExplainer, natural_language_explanation
@@ -38,8 +37,8 @@ class SeverityRequest(BaseModel):
     temperature: float = Field(25.0)
     wind_speed: float = Field(10.0)
     precipitation: float = Field(5.0)
-    month: Optional[int] = Field(None, ge=1, le=12)
-    day_of_week: Optional[int] = Field(None, ge=0, le=6)
+    month: int | None = Field(None, ge=1, le=12)
+    day_of_week: int | None = Field(None, ge=0, le=6)
 
 
 class ClassifyRequest(BaseModel):
@@ -48,12 +47,12 @@ class ClassifyRequest(BaseModel):
 
 class ForecastRequest(BaseModel):
     region: str
-    crisis_type: Optional[str] = None
+    crisis_type: str | None = None
     periods: int = Field(30, ge=1, le=365)
     freq: str = "D"
 
 
-def _event_to_features(e: CrisisEvent, source_weight: float = 0.8) -> Dict[str, Any]:
+def _event_to_features(e: CrisisEvent, source_weight: float = 0.8) -> dict[str, Any]:
     return {
         "event_type": e.event_type.value,
         "latitude": e.latitude,
@@ -111,7 +110,7 @@ def _load_nlp() -> NLPCrisisClassifier:
 
 
 @router.post("/predict/severity", summary="Predict crisis severity with SHAP explanation")
-async def predict_severity(req: SeverityRequest, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
+async def predict_severity(req: SeverityRequest, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     model = await asyncio.to_thread(_load_classifier)
     features = req.model_dump()
     if features["month"] is None:
@@ -119,7 +118,7 @@ async def predict_severity(req: SeverityRequest, db: AsyncSession = Depends(get_
     if features["day_of_week"] is None:
         features["day_of_week"] = datetime.now(timezone.utc).weekday()
 
-    def run() -> Dict[str, Any]:
+    def run() -> dict[str, Any]:
         result = model.predict(features)
         explainer = ModelExplainer()
         shap_top = explainer.explain(model.pipeline, features, feature_names=None)
@@ -127,7 +126,7 @@ async def predict_severity(req: SeverityRequest, db: AsyncSession = Depends(get_
         return {"result": result, "shap": shap_top, "explanation": explanation_text}
 
     out = await asyncio.to_thread(run)
-    result: Dict[str, Any] = out["result"] if isinstance(out["result"], dict) else {"severity": int(out["result"])}
+    result: dict[str, Any] = out["result"] if isinstance(out["result"], dict) else {"severity": int(out["result"])}
     severity = int(result.get("severity", 3))
 
     record = Prediction(
@@ -160,7 +159,7 @@ async def predict_severity(req: SeverityRequest, db: AsyncSession = Depends(get_
 
 
 @router.post("/predict/classify", summary="Classify crisis report text (NLP)")
-async def classify_text(req: ClassifyRequest, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
+async def classify_text(req: ClassifyRequest, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     model = await asyncio.to_thread(_load_nlp)
     result = await asyncio.to_thread(model.predict, req.text)
     labels = result["labels"]
@@ -194,11 +193,11 @@ async def classify_text(req: ClassifyRequest, db: AsyncSession = Depends(get_db)
 @router.get("/forecast", summary="Time-series forecast for a region")
 async def forecast_for_region(
     region: str = Query(..., description="Region name"),
-    crisis_type: Optional[str] = Query(None),
+    crisis_type: str | None = Query(None),
     periods: int = Query(60, ge=1, le=365),
     freq: str = Query("W", pattern="^(D|W|MS)$"),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     stmt = select(CrisisEvent).where(CrisisEvent.region == region)
     if crisis_type:
         stmt = stmt.where(CrisisEvent.event_type == crisis_type.replace("_", ""))
@@ -221,16 +220,16 @@ async def forecast_for_region(
     if crisis_type is not None:
         series = series[series.group == crisis_type]
 
-    def train_and_predict() -> Dict[str, Any]:
+    def train_and_predict() -> dict[str, Any]:
         fc = CrisisForecaster()
         groups = [("all", series)]
         if "group" in series.columns:
             groups = [(gname, gdf) for gname, gdf in series.groupby("group")]
-        all_frames: List[Dict[str, Any]] = []
-        metrics: Dict[str, Any] = {}
+        all_frames: list[dict[str, Any]] = []
+        metrics: dict[str, Any] = {}
         for gname, gdf in groups:
             try:
-                info = fc.train(gdf[["ds", "y"]])
+                fc.train(gdf[["ds", "y"]])
                 pred = fc.predict(periods=periods, freq=freq)
             except Exception as exc:  # noqa: BLE001
                 logger.warning("Forecast failed for %s: %s", gname, exc)
@@ -244,7 +243,7 @@ async def forecast_for_region(
                     "yhat_upper": float(yu),
                     "group": str(gname),
                 }
-                for d, y, yl, yu in zip(dates, pred["yhat"], pred["yhat_lower"], pred["yhat_upper"])
+                for d, y, yl, yu in zip(dates, pred["yhat"], pred["yhat_lower"], pred["yhat_upper"], strict=False)
             ]
             all_frames.extend(frames)
             try:
@@ -259,7 +258,7 @@ async def forecast_for_region(
         result = await asyncio.to_thread(train_and_predict)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Forecast computation failed")
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return {
         "region": region,
@@ -279,9 +278,9 @@ async def forecast_for_region(
 
 @router.get("/clusters", summary="Current crisis clusters/hotspots")
 async def crisis_clusters(
-    region: Optional[str] = Query(None),
+    region: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     stmt = select(CrisisEvent)
     if region:
         stmt = stmt.where(CrisisEvent.region == region)
@@ -302,7 +301,7 @@ async def crisis_clusters(
         ]
     )
 
-    def run() -> List[Dict[str, Any]]:
+    def run() -> list[dict[str, Any]]:
         clustering = CrisisClustering()
         clustering.fit_predict(df)
         return clustering.get_hotspots()
@@ -317,7 +316,7 @@ async def crisis_clusters(
 
 
 @router.get("/models", summary="List available ML models and their status")
-async def model_info() -> Dict[str, Any]:
+async def model_info() -> dict[str, Any]:
     classifier = _load_classifier()
     nlp = _load_nlp()
     return {
