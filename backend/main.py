@@ -178,38 +178,50 @@ async def _load_ml_models() -> None:
 
 
 async def _run_initial_ingestion() -> None:
-    """Kick off the initial data ingestion pipeline from the first available source."""
-    candidates = ("data.ingestion", "data.sources.ingestion", "data.sources")
-    runner_attrs = ("run_initial_ingestion", "ingest_initial", "start_ingestion", "run")
+    """Run data ingestion pipeline and persist events into database."""
+    try:
+        from data.ingestion import DataIngestionPipeline
+        from db.models import CrisisEvent as DBCrisisEvent, CrisisEventType
+        from services.alert_service import AlertService
 
-    for module_name in candidates:
-        try:
-            module = importlib.import_module(module_name)
-        except ImportError:
-            continue
-        for attr in runner_attrs:
-            runner = getattr(module, attr, None)
-            if not callable(runner):
-                continue
-            try:
-                if asyncio.iscoroutinefunction(runner):
-                    await runner()
-                else:
-                    await asyncio.to_thread(runner)
-            except Exception:  # noqa: BLE001
-                logger.warning(
-                    "Initial ingestion via %s.%s failed.",
-                    module_name,
-                    attr,
-                    exc_info=True,
-                )
-                continue
-            logger.info("Initial data ingestion completed via %s.%s", module_name, attr)
+        pipeline = DataIngestionPipeline()
+        events = await pipeline.run_all()
+        if not events:
+            logger.info("Ingestion completed: no new events returned.")
             return
-    logger.warning(
-        "No initial-ingestion module found; skipping startup ingestion. "
-        "Incoming feeds continue to populate the system."
-    )
+
+        async with AsyncSessionLocal() as session:
+            saved_count = 0
+            alert_service = AlertService(session)
+            for event in events:
+                try:
+                    et = CrisisEventType(event.event_type)
+                except ValueError:
+                    continue
+                db_event = DBCrisisEvent(
+                    source=event.source,
+                    event_type=et,
+                    title=event.title,
+                    description=event.description,
+                    severity=event.severity,
+                    latitude=event.latitude,
+                    longitude=event.longitude,
+                    country=event.country,
+                    region=event.region,
+                    timestamp=event.timestamp,
+                    casualties=event.casualties,
+                    displaced=event.displaced,
+                    affected=event.affected,
+                    raw_data=event.raw_data,
+                    metadata_=event.metadata,
+                )
+                session.add(db_event)
+                saved_count += 1
+                await alert_service.check_new_crisis(db_event)
+            await session.commit()
+            logger.info("Startup data ingestion completed: %d events saved.", saved_count)
+    except Exception:  # noqa: BLE001
+        logger.exception("Unexpected error during startup ingestion.")
 
 
 async def _startup(app: FastAPI) -> None:
