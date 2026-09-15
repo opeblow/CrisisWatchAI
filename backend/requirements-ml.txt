@@ -1,0 +1,30 @@
+# Heavy/optional ML & infrastructure extras.
+# Install separately on a box that can build them:
+#   pip install -r requirements-ml.txt
+#
+# The app degrades gracefully without these (rule/keyword fallbacks), so they
+# are intentionally NOT in requirements.txt to keep CI installs fast and reliable.
+
+# PostgreSQL + infra
+psycopg2-binary==2.9.9
+geoalchemy2==0.15.0
+redis==5.0.0
+celery==5.4.0
+
+# GIS
+geopandas==1.0.0
+
+# Optional data sources
+openmeteo-requests==1.3.0
+requests-cache==1.2.0
+retry-requests==2.2.0
+
+# PDF reports
+reportlab==4.2.0
+
+# Heavy ML models (slow to install; need matching wheels per Python version)
+torch==2.4.0
+transformers==4.44.0
+prophet==1.1.5
+hdbscan==0.8.33
+shap==0.46.0
