@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
 from ..http import fetch_json
-from ..schema import CrisisEvent, UNKNOWN_COORD
+from ..schema import UNKNOWN_COORD, CrisisEvent
 from ..utils import strip_html
 from .base import BaseSource, safe_float, safe_int
 
@@ -46,7 +46,7 @@ class ACLEDSource(BaseSource):
     name = "acled"
     default_requests_per_second = 0.5
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.api_url = self.config.get("api_url", DEFAULT_API_URL)
         self.email = self.config.get("email")
@@ -54,7 +54,7 @@ class ACLEDSource(BaseSource):
         self.limit = int(self.config.get("limit", 100))
         self.days = int(self.config.get("days", 7))
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         end = datetime.now(timezone.utc)
         start = end - timedelta(days=self.days)
         params = {
@@ -73,14 +73,14 @@ class ACLEDSource(BaseSource):
             retries=self.config.get("retries"),
         )
         data = (payload or {}).get("data", []) or []
-        events: List[CrisisEvent] = []
+        events: list[CrisisEvent] = []
         for record in data:
             event = self._parse_record(record)
             if event is not None:
                 events.append(event)
         return events
 
-    def _parse_record(self, record: Dict[str, Any]) -> Optional[CrisisEvent]:
+    def _parse_record(self, record: dict[str, Any]) -> CrisisEvent | None:
         acled_type = strip_html(record.get("event_type") or "Other")
         fatalities = safe_int(record.get("fatalities"))
 
@@ -145,7 +145,7 @@ class ACLEDSource(BaseSource):
         )
 
     @staticmethod
-    def _parse_timestamp(record: Dict[str, Any]) -> Optional[datetime]:
+    def _parse_timestamp(record: dict[str, Any]) -> datetime | None:
         event_date = record.get("event_date")  # YYYY-MM-DD
         if not event_date:
             return None
