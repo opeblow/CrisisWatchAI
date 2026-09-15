@@ -11,12 +11,13 @@ from __future__ import annotations
 
 import os
 from collections import Counter
+from collections.abc import Sequence
 from datetime import date, datetime, time, timezone
 from html import escape as html_escape
 from html.parser import HTMLParser
 from math import log1p
 from statistics import mean
-from typing import Any, Optional, Sequence
+from typing import Any
 
 from services.alert_service import AlertService
 
@@ -725,7 +726,7 @@ class ReportService:
         first_avg = mean(first_half) if first_half else 0.0
         second_avg = mean(second_half) if second_half else first_avg
 
-        change_pct: Optional[float] = None
+        change_pct: float | None = None
         if first_avg:
             change_pct = (second_avg - first_avg) / first_avg * 100.0
 
@@ -858,7 +859,7 @@ class _HtmlPdfParser(HTMLParser):
         )
 
     # -- HTMLParser hooks ------------------------------------------------ #
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:  # type: ignore[override]
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:  # type: ignore[override]
         tag = tag.lower()
         if tag in self._IGNORED_TAGS:
             return
@@ -961,8 +962,7 @@ class _HtmlPdfParser(HTMLParser):
                 self._text = []
                 if self._row is not None:
                     self._row.append((header, content))
-        elif tag in self._INLINE_CLOSE:
-            if not self._in_container("pre"):
+        elif tag in self._INLINE_CLOSE and not self._in_container("pre"):
                 self._text.append(self._INLINE_CLOSE[tag])
 
     def handle_data(self, data: str) -> None:  # type: ignore[override]
@@ -972,7 +972,7 @@ class _HtmlPdfParser(HTMLParser):
             self._text.append(html_escape(data, quote=False))
 
     # -- Helpers ---------------------------------------------------------- #
-    def _current_kind(self) -> Optional[str]:
+    def _current_kind(self) -> str | None:
         return self._stack[-1][0] if self._stack else None
 
     def _in_container(self, kind: str) -> bool:
