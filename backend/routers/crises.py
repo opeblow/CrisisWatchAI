@@ -184,7 +184,7 @@ async def crisis_stats(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
         )
     ).scalar_one()
 
-    critical = sum(int(k) for k, v in by_severity.items() if int(k) >= 4 and v > 0)
+    critical = sum(v for k, v in by_severity.items() if int(k) >= 4)
 
     return {
         "total_events": total,
