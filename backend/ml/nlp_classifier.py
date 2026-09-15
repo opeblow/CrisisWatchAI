@@ -27,8 +27,9 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any
 
 import numpy as np
 
@@ -50,7 +51,7 @@ except Exception as exc:  # pragma: no cover - environment dependent
     AdamW = AutoModelForSequenceClassification = AutoTokenizer = None
     get_linear_schedule_with_warmup = None
 
-LABELS: List[str] = [
+LABELS: list[str] = [
     "conflict",
     "flood",
     "earthquake",
@@ -60,7 +61,7 @@ LABELS: List[str] = [
     "food_crisis",
     "displacement",
 ]
-LABEL_TO_INDEX: Dict[str, int] = {name: i for i, name in enumerate(LABELS)}
+LABEL_TO_INDEX: dict[str, int] = {name: i for i, name in enumerate(LABELS)}
 
 MODEL_DIR: Path = Path(__file__).resolve().parent / "models"
 NLP_MODEL_DIR: Path = MODEL_DIR / "nlp_distilbert"
@@ -71,7 +72,7 @@ DEFAULT_THRESHOLD: float = 0.5
 
 # Keyword -> (aliases) used by the fallback classifier.  Kept purposefully
 # small to limit false positives; real deployments should use the transformer.
-_FALLBACK_KEYWORDS: Dict[str, List[str]] = {
+_FALLBACK_KEYWORDS: dict[str, list[str]] = {
     "conflict": [
         "conflict", "war", "battle", "gunfire", "shooting", "bomb", "airstrike",
         "shelling", "militia", "insurgent", "offensive", "ceasefire", "armed",
@@ -138,7 +139,7 @@ class NLPCrisisClassifier:
         self,
         model_name: str = "distilbert-base-uncased",
         threshold: float = DEFAULT_THRESHOLD,
-        model_dir: Union[str, Path] = NLP_MODEL_DIR,
+        model_dir: str | Path = NLP_MODEL_DIR,
     ) -> None:
         self.model_name = model_name
         self.threshold = float(threshold)
@@ -147,7 +148,7 @@ class NLPCrisisClassifier:
         self.tokenizer: Any = None
         self.device: Any = None
         self._fallback_mode = not _TRANSFORMERS_AVAILABLE
-        self._trained_labels: List[str] = list(LABELS)
+        self._trained_labels: list[str] = list(LABELS)
 
     # ------------------------------------------------------------------ train
     def train(
@@ -161,7 +162,7 @@ class NLPCrisisClassifier:
         random_state: int = 42,
         max_length: int = MAX_SEQ_LENGTH,
         save: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fine-tune DistilBERT for multi-label classification.
 
         Parameters
@@ -243,9 +244,9 @@ class NLPCrisisClassifier:
         )
         loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
-        epoch_metrics: List[Dict[str, float]] = []
+        epoch_metrics: list[dict[str, float]] = []
         best_val_loss = float("inf")
-        best_state: Optional[Dict[str, Any]] = None
+        best_state: dict[str, Any] | None = None
 
         for epoch in range(1, epochs + 1):
             model.train()
@@ -296,7 +297,7 @@ class NLPCrisisClassifier:
             "threshold": self.threshold,
         }
 
-    def predict(self, text: str) -> Dict[str, List[float]]:
+    def predict(self, text: str) -> dict[str, list[float]]:
         """Classify a single text document.
 
         Returns ``{"labels": List[str], "scores": List[float]}``.  Only labels whose
@@ -322,7 +323,7 @@ class NLPCrisisClassifier:
         return self._format_probs(probs)
 
     # ------------------------------------------------------------ persistence
-    def save_model(self, path: Optional[Union[str, Path]] = None) -> Path:
+    def save_model(self, path: str | Path | None = None) -> Path:
         """Persist tokenizer, model and metadata via ``transformers``."""
         dest = Path(path) if path else self.model_dir
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -350,7 +351,7 @@ class NLPCrisisClassifier:
         logger.info("Saved NLP model to %s", dest)
         return dest
 
-    def load_model(self, path: Optional[Union[str, Path]] = None) -> "NLPCrisisClassifier":
+    def load_model(self, path: str | Path | None = None) -> NLPCrisisClassifier:
         """Load a previously saved DistilBERT model + tokenizer."""
         src = Path(path) if path else self.model_dir
         if not (src / "config.json").exists():
@@ -371,11 +372,11 @@ class NLPCrisisClassifier:
         return self
 
     # --------------------------------------------------------------- fallback
-    def _predict_fallback(self, text: str) -> Dict[str, List[float]]:
+    def _predict_fallback(self, text: str) -> dict[str, list[float]]:
         """Keyword-based scorer used when transformers/torch are unavailable."""
         normalized = _normalize_text(text)
         tokens = set(_WORD_RE.findall(normalized))
-        hits: Dict[str, int] = {}
+        hits: dict[str, int] = {}
         for label, keywords in _FALLBACK_KEYWORDS.items():
             count = 0
             for kw in keywords:
@@ -393,7 +394,7 @@ class NLPCrisisClassifier:
                 scores.append(float(score))
         return {"labels": matched, "scores": scores}
 
-    def _format_probs(self, probs: Sequence[float]) -> Dict[str, List[float]]:
+    def _format_probs(self, probs: Sequence[float]) -> dict[str, list[float]]:
         ranked = sorted(
             ((LABELS[i], float(p)) for i, p in enumerate(probs) if float(p) >= self.threshold),
             key=lambda kv: kv[1],
