@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.5-blue?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
 </p>
 
-<h1 align="center">🌍 CrisisWatch AI</h1>
+<h1 align="center">CrisisWatch AI</h1>
 
 <p align="center">
   <strong>Real-Time Global Crisis Intelligence Platform</strong><br/>
@@ -19,34 +19,34 @@
 </p>
 
 <p align="center">
-  <a href="#-quickstart">Quickstart</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-api-reference">API</a> •
-  <a href="#-contributing">Contributing</a>
+  <a href="#quickstart">Quickstart</a> •
+  <a href="#features">Features</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#api-reference">API</a> •
+  <a href="#contributing">Contributing</a>
 </p>
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description | Tech |
 |:--------|:------------|:-----|
-| 🗺️ Live Crisis Map | Interactive dark-theme global map with severity-coded markers | React-Leaflet + CARTO |
-| 📊 Real-Time Dashboard | Stats, trend charts, severity donut, top-affected countries | Recharts + TanStack Query |
-| 🧠 Severity Classifier | Predicts 1–5 risk level with SHAP feature attribution | XGBoost |
-| 📝 NLP Report Classifier | Classifies situation reports into 8 crisis categories | DistilBERT (keyword fallback) |
-| 📈 Regional Forecasting | Time-series crisis frequency prediction with 95% confidence bands | Prophet (seasonal-naive fallback) |
-| 🔍 Hotspot Clustering | Identifies emerging crisis zones by density + severity | HDBSCAN (DBSCAN fallback) |
-| 🔔 Smart Alerts | Priority-ranked alerts auto-generated when severity crosses threshold | FastAPI + SQLAlchemy |
-| 📄 Auto Reports | One-click impact reports with executive summaries + markdown export | ReportService |
-| 🎯 Explainable AI | Every prediction shows *why* — top features, direction, plain-language reasoning | SHAP |
+| Live Crisis Map | Interactive dark-theme global map with severity-coded markers | React-Leaflet + CARTO |
+| Real-Time Dashboard | Stats, trend charts, severity donut, top-affected countries | Recharts + TanStack Query |
+| Severity Classifier | Predicts 1–5 risk level with SHAP feature attribution | XGBoost |
+| NLP Report Classifier | Classifies situation reports into 8 crisis categories | DistilBERT (keyword fallback) |
+| Regional Forecasting | Time-series crisis frequency prediction with 95% confidence bands | Prophet (seasonal-naive fallback) |
+| Hotspot Clustering | Identifies emerging crisis zones by density + severity | HDBSCAN (DBSCAN fallback) |
+| Smart Alerts | Priority-ranked alerts auto-generated when severity crosses threshold | FastAPI + SQLAlchemy |
+| Auto Reports | One-click impact reports with executive summaries + markdown export | ReportService |
+| Explainable AI | Every prediction shows *why* — top features, direction, plain-language reasoning | SHAP |
 
 **Data Sources:** GDACS · USGS · NASA FIRMS · ReliefWeb · WHO · ACLED · Open-Meteo
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 CrisisWatchAI/
@@ -138,7 +138,7 @@ CrisisWatchAI/
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
 
@@ -193,7 +193,7 @@ docker compose up --build
 
 ---
 
-## 🧪 Verification
+## Verification
 
 ### Backend smoke test (no server required)
 
@@ -214,7 +214,7 @@ npm run build
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 | Method | Endpoint | Description |
 |:------:|:---------|:------------|
@@ -235,7 +235,7 @@ npm run build
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌──────────────┐     /api/*      ┌──────────────┐     async     ┌────────────┐
@@ -269,7 +269,7 @@ npm run build
 
 ---
 
-## 🔧 Tech Stack
+## Tech Stack
 
 **Frontend:** Next.js 14 · React 18 · TypeScript · Tailwind CSS · Recharts · React-Leaflet · Framer Motion · TanStack Query
 
@@ -281,7 +281,7 @@ npm run build
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
@@ -294,19 +294,19 @@ cd CrisisWatchAI
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License — see [LICENSE](LICENSE).
 
 ---
 
-## 🔒 Security
+## Security
 
 For vulnerability reports, see [SECURITY.md](SECURITY.md).
 
 ---
 
-## 🙏 Data Attribution
+## Data Attribution
 
 All crisis data comes from publicly available sources. This project is for educational and demonstration purposes and is **not** a certified disaster-response system.
 

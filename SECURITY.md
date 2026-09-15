@@ -51,8 +51,8 @@ Include:
 
 | Version | Supported |
 |---------|-----------|
-| Latest main | ✅ |
-| Older commits | ❌ |
+| Latest main | Yes |
+| Older commits | No |
 
 ## Dependencies
 
