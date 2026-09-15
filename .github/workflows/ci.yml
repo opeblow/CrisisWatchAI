@@ -47,6 +47,9 @@ jobs:
       - name: Run smoke test
         run: |
           DATABASE_URL=sqlite+aiosqlite:///./crisiswatch.db python smoke_test.py
+      - name: Run endpoint test
+        run: |
+          DATABASE_URL=sqlite+aiosqlite:///./crisiswatch.db python endpoint_test.py
 
   dependency-audit:
     name: Dependency vulnerability scan
