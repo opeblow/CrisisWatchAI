@@ -287,7 +287,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 Quick start:
 ```bash
-git clone https://github.com/YOUR_USERNAME/CrisisWatchAI.git
+git clone https://github.com/opeblow/CrisisWatchAI.git
 cd CrisisWatchAI
 # Follow the Quickstart above
 ```
