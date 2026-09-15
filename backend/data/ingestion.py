@@ -26,9 +26,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any
 
 import httpx
 import pandas as pd
@@ -60,7 +61,7 @@ DEFAULT_RATES = {
 }
 
 #: Default configuration merged with any user-provided overrides.
-DEFAULT_CONFIG: Dict[str, Any] = {
+DEFAULT_CONFIG: dict[str, Any] = {
     "timeout": 30.0,
     "retries": 3,
     "requests_per_second": DEFAULT_RATES,
@@ -77,7 +78,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
 }
 
 
-def _merge_dict(base: Dict[str, Any], override: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def _merge_dict(base: dict[str, Any], override: dict[str, Any] | None) -> dict[str, Any]:
     """Deep-merge ``override`` into ``base`` (both left intact)."""
     merged = dict(base)
     for key, value in (override or {}).items():
@@ -92,8 +93,8 @@ def _merge_dict(base: Dict[str, Any], override: Optional[Dict[str, Any]]) -> Dic
 class IngestionResult:
     """Output of a full ingestion run."""
 
-    events: List[CrisisEvent] = field(default_factory=list)
-    source_errors: Dict[str, Exception] = field(default_factory=dict)
+    events: list[CrisisEvent] = field(default_factory=list)
+    source_errors: dict[str, Exception] = field(default_factory=dict)
     started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     finished_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -106,18 +107,18 @@ class DataIngestionPipeline:
     """Orchestrates concurrent fetching, preprocessing and aggregation of
     crisis events from all configured providers."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         self.config = _merge_dict(DEFAULT_CONFIG, config)
 
         rates = self.config["requests_per_second"]
 
-        def source_config(name: str) -> Dict[str, Any]:
+        def source_config(name: str) -> dict[str, Any]:
             cfg = dict(self.config["sources"].get(name, {}))
             cfg.setdefault("requests_per_second", rates.get(name, 0.5))
             cfg.setdefault("retries", self.config["retries"])
             return cfg
 
-        self.sources: Dict[str, Any] = {
+        self.sources: dict[str, Any] = {
             "gdacs": GDACSSource(source_config("gdacs")),
             "usgs": USGSSource(source_config("usgs")),
             "nasa_firms": NASAFIRMSSource(source_config("nasa_firms")),
@@ -135,8 +136,8 @@ class DataIngestionPipeline:
     async def run_all(
         self,
         *,
-        prefetch_weather: Optional[bool] = None,
-    ) -> List[CrisisEvent]:
+        prefetch_weather: bool | None = None,
+    ) -> list[CrisisEvent]:
         """Fetch from every source concurrently and return merged events.
 
         Args:
@@ -155,7 +156,7 @@ class DataIngestionPipeline:
     async def run_with_errors(
         self,
         *,
-        prefetch_weather: Optional[bool] = None,
+        prefetch_weather: bool | None = None,
     ) -> IngestionResult:
         """Like :meth:`run_all` but also surfaces per-source errors and timing."""
         result = IngestionResult()
@@ -165,7 +166,7 @@ class DataIngestionPipeline:
                 name: asyncio.create_task(self._fetch_safely(client, name, source))
                 for name, source in self.sources.items()
             }
-            fetched: Dict[str, List[CrisisEvent]] = {}
+            fetched: dict[str, list[CrisisEvent]] = {}
             for name, task in tasks.items():
                 events, error = await task
                 fetched[name] = events
@@ -192,7 +193,7 @@ class DataIngestionPipeline:
             logger.warning("Sources with errors: %s", ", ".join(result.source_errors))
         return result
 
-    async def fetch_source(self, name: str) -> List[CrisisEvent]:
+    async def fetch_source(self, name: str) -> list[CrisisEvent]:
         """Fetch from a single named source (e.g. ``"usgs"``)."""
         source = self.sources.get(name)
         if source is None:
@@ -213,7 +214,7 @@ class DataIngestionPipeline:
         events = await self.run_all(**kwargs)
         return self.preprocess(events)
 
-    def available_sources(self) -> List[str]:
+    def available_sources(self) -> list[str]:
         return list(self.sources)
 
     # -- internals -----------------------------------------------------------
@@ -223,7 +224,7 @@ class DataIngestionPipeline:
         client: httpx.AsyncClient,
         name: str,
         source: Any,
-    ) -> tuple[List[CrisisEvent], Optional[Exception]]:
+    ) -> tuple[list[CrisisEvent], Exception | None]:
         """Run one source, converting any exception into an error result."""
         try:
             events = await source.fetch(client)
