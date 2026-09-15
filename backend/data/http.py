@@ -5,7 +5,7 @@ import asyncio
 import logging
 import random
 import time
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any
 
 import httpx
 
@@ -46,7 +46,7 @@ class RateLimiter:
             self._last_call = time.monotonic()
 
 
-def _parse_retry_after(value: Optional[str]) -> float:
+def _parse_retry_after(value: str | None) -> float:
     """Convert a ``Retry-After`` header into seconds (HTTP-date unsupported)."""
     if not value:
         return 0.0
@@ -61,11 +61,11 @@ async def request_with_retry(
     method: str,
     url: str,
     *,
-    params: Optional[Dict[str, Any]] = None,
-    headers: Optional[Dict[str, str]] = None,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
     json: Any = None,
-    content: Optional[bytes] = None,
-    rate_limiter: Optional[RateLimiter] = None,
+    content: bytes | None = None,
+    rate_limiter: RateLimiter | None = None,
     retries: int = DEFAULT_RETRIES,
     backoff: float = DEFAULT_BACKOFF,
     timeout: float = DEFAULT_TIMEOUT,
