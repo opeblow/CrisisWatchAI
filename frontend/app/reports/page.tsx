@@ -21,10 +21,14 @@ const DAYS = [
 ];
 
 function renderFmt(report: Report) {
-  const clean = report.content.replace(/^#+\s+/gm, "");
+  const escaped = report.content
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const clean = escaped.replace(/^#+\s+/gm, "");
   return clean
     .split("\n")
-    .map((line) => `<p>${line.trim()}</p>`)
+    .map((line) => (line.trim() ? `<p>${line.trim()}</p>` : ""))
     .join("");
 }
 
