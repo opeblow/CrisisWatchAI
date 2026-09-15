@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -22,13 +22,13 @@ class BaseSource:
     #: Default requests-per-second cap used when the config omits it.
     default_requests_per_second: float = 1.0
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = dict(config or {})
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = dict(config or {})
         self.rate_limiter = RateLimiter(
             float(self.config.get("requests_per_second", self.default_requests_per_second))
         )
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         """Fetch and parse events from this source.
 
         Args:
@@ -54,7 +54,7 @@ def safe_float(value: Any, default: float = float("nan")) -> float:
         return default
 
 
-def safe_int(value: Any, default: Optional[int] = None) -> Optional[int]:
+def safe_int(value: Any, default: int | None = None) -> int | None:
     """Coerce a value to int, returning ``default`` on failure."""
     try:
         if value is None or value == "":
