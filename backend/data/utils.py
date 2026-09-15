@@ -5,12 +5,11 @@ import html
 import re
 from datetime import date, datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Optional
 
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 
-def strip_html(text: Optional[str]) -> str:
+def strip_html(text: str | None) -> str:
     """Remove HTML/XML tags and entities, collapsing whitespace."""
     if not text:
         return ""
@@ -19,7 +18,7 @@ def strip_html(text: Optional[str]) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def parse_datetime(value: object) -> Optional[datetime]:
+def parse_datetime(value: object) -> datetime | None:
     """Parse a datetime from RFC-2822 strings, ISO-8601 strings or datetime
     objects, always normalizing to an aware UTC timestamp.
 
@@ -47,7 +46,7 @@ def parse_datetime(value: object) -> Optional[datetime]:
     return dt.astimezone(timezone.utc)
 
 
-def first_int(text: object, default: Optional[int] = None) -> Optional[int]:
+def first_int(text: object, default: int | None = None) -> int | None:
     """Return the first integer found in free text (e.g. ``"1 234 cases"``)."""
     if text is None:
         return default
