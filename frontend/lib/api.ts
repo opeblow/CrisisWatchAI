@@ -30,14 +30,24 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function buildQuery(params?: Record<string, string | number | boolean | undefined>): string {
+  if (!params) return "";
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") {
+      search.append(key, String(value));
+    }
+  }
+  const q = search.toString();
+  return q ? `?${q}` : "";
+}
+
 export function getCrises(params?: Record<string, string | number>): Promise<{ total: number; events: CrisisEvent[] }> {
-  const qs = params ? `?${new URLSearchParams(String(params as Record<string, string>))}` : "";
-  return request(`/api/crises${qs}`);
+  return request(`/api/crises${buildQuery(params)}`);
 }
 
 export function getCrisisMap(params?: Record<string, string | number>): Promise<{ features: GeoJSON.Feature[] }> {
-  const qs = params ? `?${new URLSearchParams(String(params as Record<string, string>))}` : "";
-  return request(`/api/crises/map${qs}`);
+  return request(`/api/crises/map${buildQuery(params)}`);
 }
 
 export function getStats(): Promise<CrisisStats> {
@@ -49,8 +59,7 @@ export function getRegions(): Promise<{ regions: RegionInfo[] }> {
 }
 
 export function getAlerts(params?: Record<string, string | number>): Promise<{ alerts: AlertItem[]; unread_count: number }> {
-  const qs = params ? `?${new URLSearchParams(String(params as Record<string, string>))}` : "";
-  return request(`/api/alerts${qs}`);
+  return request(`/api/alerts${buildQuery(params)}`);
 }
 
 export function predictSeverity(body: Record<string, unknown>): Promise<SeverityPrediction> {
@@ -68,8 +77,7 @@ export function classifyText(text: string): Promise<ClassificationResult> {
 }
 
 export function getForecast(params: Record<string, string | number>): Promise<ForecastResponse> {
-  const qs = new URLSearchParams(String(params as Record<string, string>));
-  return request(`/api/forecast?${qs}`);
+  return request(`/api/forecast${buildQuery(params)}`);
 }
 
 export function getClusters(): Promise<{ clusters: Hotspot[]; count: number }> {
@@ -84,8 +92,7 @@ export function generateReport(body: Record<string, unknown>): Promise<Report> {
 }
 
 export function getReports(params?: Record<string, string | number>): Promise<{ reports: Report[]; count: number }> {
-  const qs = params ? `?${new URLSearchParams(String(params as Record<string, string>))}` : "";
-  return request(`/api/reports${qs}`);
+  return request(`/api/reports${buildQuery(params)}`);
 }
 
 export function markAlertRead(alertId: string): Promise<{ id: string; is_read: boolean }> {
