@@ -12,8 +12,8 @@ construction time (typically via the FastAPI ``get_db`` dependency).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import timezone
+from typing import Any
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,11 +33,11 @@ _SEVERITY_LABELS: dict[int, str] = {
 }
 
 _SEVERITY_COLORS: dict[int, str] = {
-    1: "#1B5E20",  # dark green
-    2: "#F9A825",  # amber
-    3: "#EF6C00",  # orange
-    4: "#C62828",  # red
-    5: "#4A148C",  # deep purple
+    1: "#737373",  # neutral gray
+    2: "#D4D4D8",  # light gray
+    3: "#EAB308",  # dark yellow
+    4: "#FACC15",  # yellow
+    5: "#FDE047",  # lemon
 }
 
 
@@ -112,7 +112,7 @@ class AlertService:
     # ------------------------------------------------------------------ #
     # Alert lifecycle
     # ------------------------------------------------------------------ #
-    async def check_new_crisis(self, crisis_event: CrisisEvent) -> Optional[dict[str, Any]]:
+    async def check_new_crisis(self, crisis_event: CrisisEvent) -> dict[str, Any] | None:
         """Evaluate a crisis event and generate an alert when warranted.
 
         An alert is only created when the event's severity is at or above
@@ -281,7 +281,7 @@ class AlertService:
     def _serialize_alert(
         self,
         alert: CrisisAlert,
-        event: Optional[CrisisEvent] = None,
+        event: CrisisEvent | None = None,
     ) -> dict[str, Any]:
         """Convert an alert ORM object (and optionally its event) to a dict."""
         payload: dict[str, Any] = {
