@@ -16,12 +16,12 @@ import csv
 import io
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
 from ..http import fetch_text
-from ..schema import CrisisEvent, UNKNOWN_COORD
+from ..schema import CrisisEvent
 from .base import BaseSource, safe_float
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ def frp_to_severity(frp: float) -> int:
     return 1
 
 
-def _parse_confidence(value: Any) -> Optional[int]:
+def _parse_confidence(value: Any) -> int | None:
     """Normalize a FIRMS confidence field to a 0-100 integer.
 
     Area API rows use categories (``low``/``nominal``/``high``); the open CSV
@@ -78,7 +78,7 @@ class NASAFIRMSSource(BaseSource):
     name = "nasa_firms"
     default_requests_per_second = 0.5
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.api_key = self.config.get("api_key")
         self.satellite = self.config.get("satellite", "VIIRS_SNPP_NRT")
@@ -109,21 +109,21 @@ class NASAFIRMSSource(BaseSource):
             retries=self.config.get("retries"),
         )
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         content = await self._fetch_csv(client)
         rows = list(csv.DictReader(io.StringIO(content)))
         if not rows:
             logger.warning("FIRMS returned an empty CSV payload")
             return []
 
-        events: List[CrisisEvent] = []
+        events: list[CrisisEvent] = []
         for row in rows:
             event = self._parse_row(row)
             if event is not None:
                 events.append(event)
         return events
 
-    def _parse_row(self, row: Dict[str, str]) -> Optional[CrisisEvent]:
+    def _parse_row(self, row: dict[str, str]) -> CrisisEvent | None:
         lat = safe_float(row.get("latitude"))
         lon = safe_float(row.get("longitude"))
         if lat == float("nan") or lon == float("nan"):
@@ -172,7 +172,7 @@ class NASAFIRMSSource(BaseSource):
         )
 
     @staticmethod
-    def _acquisition_timestamp(acq_date: Optional[str], acq_time: Optional[str]) -> Optional[datetime]:
+    def _acquisition_timestamp(acq_date: str | None, acq_time: str | None) -> datetime | None:
         """Combine FIRMS ``acq_date`` (YYYY-MM-DD) and ``acq_time`` (HHMM, UTC)."""
         if not acq_date:
             return None
