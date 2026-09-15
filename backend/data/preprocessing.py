@@ -10,14 +10,15 @@ import logging
 import math
 import re
 import unicodedata
-from collections import Counter, defaultdict
-from datetime import datetime, timedelta, timezone
+from collections import defaultdict
+from collections.abc import Sequence
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any
 
 import pandas as pd
 
-from .schema import CrisisEvent, DEFAULT_SEVERITY
+from .schema import DEFAULT_SEVERITY, CrisisEvent
 from .utils import strip_html
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ def clean_text(text: Any, max_length: int = 1000) -> str:
 # --- Coordinate -> country lookup ------------------------------------------
 
 #: Cached reverse-geocoding results keyed by rounded (lat, lon).
-_country_cache: Dict[tuple, str] = {}
+_country_cache: dict[tuple, str] = {}
 _world = None
 
 
@@ -126,7 +127,7 @@ def extract_country_from_coords(lat: float, lon: float) -> str:
 # --- Imputation -------------------------------------------------------------
 
 
-def impute_missing(events: Sequence[CrisisEvent]) -> List[CrisisEvent]:
+def impute_missing(events: Sequence[CrisisEvent]) -> list[CrisisEvent]:
     """Fill missing fields using best-effort heuristics (mutates in place).
 
     - Severity: normalized to 1-5 (see :func:`normalize_severity`).
@@ -223,7 +224,7 @@ def _merge_events(a: CrisisEvent, b: CrisisEvent) -> CrisisEvent:
     return merged
 
 
-def deduplicate(events: Sequence[CrisisEvent]) -> List[CrisisEvent]:
+def deduplicate(events: Sequence[CrisisEvent]) -> list[CrisisEvent]:
     """Remove duplicates across sources.
 
     Two passes:
@@ -236,11 +237,11 @@ def deduplicate(events: Sequence[CrisisEvent]) -> List[CrisisEvent]:
     if not events:
         return []
 
-    structural: Dict[tuple, List[CrisisEvent]] = defaultdict(list)
+    structural: dict[tuple, list[CrisisEvent]] = defaultdict(list)
     for event in events:
         structural[_dedup_key(event)].append(event)
 
-    deduped: List[CrisisEvent] = []
+    deduped: list[CrisisEvent] = []
     for group in structural.values():
         if len(group) == 1:
             deduped.append(group[0])
@@ -253,7 +254,7 @@ def deduplicate(events: Sequence[CrisisEvent]) -> List[CrisisEvent]:
         deduped.append(best)
 
     # Pass 2: semantic near-duplicate collapse.
-    result: List[CrisisEvent] = []
+    result: list[CrisisEvent] = []
 
     def _is_duplicate(candidate: CrisisEvent, existing: CrisisEvent) -> bool:
         if candidate.event_type != existing.event_type:
@@ -322,7 +323,7 @@ def _season(month: int, latitude: float) -> str:
     return season_north
 
 
-def feature_engineering(events: Sequence[CrisisEvent]) -> List[Dict[str, Any]]:
+def feature_engineering(events: Sequence[CrisisEvent]) -> list[dict[str, Any]]:
     """Derive predictive features for each event.
 
     Produces one flat dict per event containing the base fields plus:
@@ -332,7 +333,7 @@ def feature_engineering(events: Sequence[CrisisEvent]) -> List[Dict[str, Any]]:
     - ``season``: meteorological season by hemisphere,
     - ``region_risk_score``: static country-driven risk (0-1).
     """
-    records: List[Dict[str, Any]] = []
+    records: list[dict[str, Any]] = []
     for event in events:
         ts = event.timestamp
         record = {
@@ -381,7 +382,7 @@ _FEATURE_COLUMNS = [
 def preprocess_pipeline(events: Sequence[CrisisEvent]) -> pd.DataFrame:
     """Run cleaning -> imputation -> deduplication -> feature engineering and
     return the result as a pandas DataFrame."""
-    cleaned: List[CrisisEvent] = []
+    cleaned: list[CrisisEvent] = []
     for event in events:
         cleaned.append(
             CrisisEvent(
