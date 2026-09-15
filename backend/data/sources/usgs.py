@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
 from ..http import fetch_json
-from ..schema import CrisisEvent, UNKNOWN_COORD
+from ..schema import UNKNOWN_COORD, CrisisEvent
 from ..utils import strip_html
 from .base import BaseSource, safe_float, safe_int
 
@@ -42,13 +42,13 @@ class USGSSource(BaseSource):
     name = "usgs"
     default_requests_per_second = 2.0
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.api_url = self.config.get("api_url", DEFAULT_API_URL)
         self.min_magnitude = float(self.config.get("minmagnitude", 4.5))
         self.days = int(self.config.get("days", 7))
 
-    async def fetch(self, client: httpx.AsyncClient) -> List[CrisisEvent]:
+    async def fetch(self, client: httpx.AsyncClient) -> list[CrisisEvent]:
         end = datetime.now(timezone.utc)
         start = end - timedelta(days=self.days)
         params = {
@@ -61,14 +61,14 @@ class USGSSource(BaseSource):
             retries=self.config.get("retries"),
         )
         features = (payload or {}).get("features", []) or []
-        events: List[CrisisEvent] = []
+        events: list[CrisisEvent] = []
         for feature in features:
             event = self._parse_feature(feature)
             if event is not None:
                 events.append(event)
         return events
 
-    def _parse_feature(self, feature: Dict[str, Any]) -> Optional[CrisisEvent]:
+    def _parse_feature(self, feature: dict[str, Any]) -> CrisisEvent | None:
         props = feature.get("properties") or {}
         geometry = feature.get("geometry") or {}
 
